@@ -266,20 +266,21 @@ const BookDetail = () => {
   }
   
   return (
-    <div className="book-detail-container">
-      <div className="book-detail-header">
-        <button onClick={() => navigate('/books')} className="back-button">
+    <div className="book-detail-container">      <div className="book-detail-header">
+        <button onClick={() => navigate('/books')} className="bkdet-back-button">
           <FaArrowLeft /> Back to Browse Books
         </button>
         {isOwner && (
           <button 
             onClick={() => navigate(`/edit-book/${id}`)} 
-            className="edit-button"
+            className="editbk-button"
           >
             <FaEdit /> Edit Book
           </button>
         )}
       </div>
+      
+      <h1 className="book-detail-title">Book Detail</h1>
       
       {error && (
         <div className="error-message">
@@ -294,13 +295,11 @@ const BookDetail = () => {
             alt={book.title} 
             className="book-image"
           />
-          
-          <div className="book-actions">
+            <div className="book-actions">
             {!isOwner && (
-              <>
-                <button 
+              <>                <button 
                   onClick={() => setShowRequestForm(true)}
-                  className="request-button"
+                  className="det-request-button"
                   disabled={book.status !== 'available' || submitting}
                 >
                   <FaExchangeAlt /> Borrow This Book
@@ -308,7 +307,7 @@ const BookDetail = () => {
                 
                 <button 
                   onClick={addToWishlist}
-                  className="wishlist-button"
+                  className="det-wishlist-button"
                   disabled={addedToWishlist || submitting}
                 >
                   <FaHeart /> {addedToWishlist ? 'Added to Wishlist' : 'Add to Wishlist'}
@@ -330,24 +329,25 @@ const BookDetail = () => {
           )}
           
           <div className="book-rating-container">
-            <div className="book-rating">
-              <div className="stars">
-                {renderStars(book.rating || 0)}
-              </div>
-              <span className="rating-text">
-                {book.rating?.toFixed(1) || 'No ratings yet'} ({book.reviews?.length || 0} reviews)
-              </span>
-            </div>
-            
-            <div className="book-status">
-              <span className={`status-badge ${book.status}`}>
-                {book.status.charAt(0).toUpperCase() + book.status.slice(1)}
-              </span>
-              <span className={`status-badge ${book.needsReturn ? 'return' : 'no-return'}`}>
-                {book.needsReturn ? 'Needs Return' : 'Gift'}
-              </span>
-            </div>
-          </div>
+  <div className="book-rating">
+    <span className="ratings-label">Ratings:</span>
+    <div className="stars">
+      {renderStars(book.rating || 0)}
+    </div>
+    <span className="rating-text">
+      {book.rating?.toFixed(1) || 'No ratings yet'} ({book.reviews?.length || 0} reviews)
+    </span>
+  </div>
+  
+  <div className="book-status">
+    <span className={`status-badge ${book.status}`}>
+      {book.status.charAt(0).toUpperCase() + book.status.slice(1)}
+    </span>
+    <span className={`status-badge ${book.needsReturn ? 'return' : 'no-return'}`}>
+      {book.needsReturn ? 'Needs Return' : 'Gift'}
+    </span>
+  </div>
+</div>
           
           <div className="book-meta">
             <div className="meta-item">

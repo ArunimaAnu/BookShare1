@@ -58,7 +58,6 @@ const Login = () => {
       setLoading(false);
     }
   };
-
   return (
     <div className="login-container">
       <div className="login-form-container">
@@ -99,9 +98,17 @@ const Login = () => {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        
-        <div className="register-link">
+          <div className="register-link">
           Don't have an account? <Link to="/register">Register here</Link>
+        </div>
+        
+        <div className="home-button-container">
+          <button 
+            className="home-button" 
+            onClick={() => navigate('/')}
+          >
+            Back to Home
+          </button>
         </div>
       </div>
     </div>

@@ -164,8 +164,7 @@ const AdminBrowseBooks = () => {
             <div className="loading">Loading books...</div>
           ) : (
             <div className="books-grid">
-              {filteredBooks.map(book => (
-                <div key={book._id} className="book-card">
+              {filteredBooks.map(book => (                <div key={book._id} className="book-card">
                   <div className="book-cover">
                     <img
                       src={book.image || '/default-book-cover.jpg'}
@@ -177,10 +176,9 @@ const AdminBrowseBooks = () => {
                     />
                   </div>
                   <div className="book-info">
-                    <h3>{book.title}</h3>
-                    <p className="author">{book.author}</p>
-                    <p className="genre">{book.genre}</p>
-                    <div className="book-rating">
+                    <h3 title={book.title}>{book.title}</h3>
+                    <p className="author" title={book.author}>{book.author}</p>
+                    <p className="genre" title={book.genre}>{book.genre}</p>                    <div className="book-rating">
                       {book.rating ? `${book.rating.toFixed(1)} ⭐` : 'No ratings'}
                     </div>
                     <div className="book-actions">
@@ -188,19 +186,19 @@ const AdminBrowseBooks = () => {
                         className="view-button"
                         onClick={() => navigate(`/admin/books/${book._id}`)}
                       >
-                        View Details
+                        View
                       </button>
                       <button
                         className="edit-button"
                         onClick={() => navigate(`/edit-book/${book._id}`)}
                       >
-                        <FaEdit /> Edit
+                        Edit
                       </button>
                       <button
                         className="delete-button"
                         onClick={() => handleDeleteBook(book._id)}
                       >
-                        <FaTrash /> Delete
+                        Delete
                       </button>
                     </div>
                   </div>
