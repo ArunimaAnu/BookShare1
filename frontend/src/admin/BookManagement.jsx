@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './AdminDashboard.css';
+import { FiPlus, FiEdit2, FiTrash2, FiBook } from 'react-icons/fi';
+import './BookManagement.css';
 
 const BookManagement = () => {
   const navigate = useNavigate();
@@ -182,273 +183,200 @@ const BookManagement = () => {
   };
 
   return (
-    <div className="admin-dashboard-container">
-      <div className="admin-sidebar">
-        <div className="admin-logo">Admin Dashboard</div>
-        <nav className="admin-nav">
-          <button
-            className="nav-item"
-            onClick={() => navigate('/admin')}
-          >
-            Dashboard
+    <div className="book-mgmt-container">
+      <div className="book-mgmt-sidebar">
+        <div className="book-mgmt-logo">
+          <FiBook />
+          BookShare Admin
+        </div>
+        <nav className="book-mgmt-nav">
+          <button className="book-mgmt-nav-item active">
+            Books
           </button>
-          <button
-            className="nav-item"
-            onClick={() => navigate('/admin/users')}
-          >
-            User Management
-          </button>
-          <button
-            className="nav-item active"
-            onClick={() => navigate('/admin/books')}
-          >
-            Book Management
-          </button>
-          <button
-            className="nav-item"
-            onClick={() => navigate('/admin/complaints')}
-          >
-            Complaints
-          </button>
-          <button
-            className="nav-item logout"
-            onClick={handleLogout}
+          <button 
+            className="book-mgmt-nav-item logout"
+            onClick={() => {
+              localStorage.removeItem('token');
+              navigate('/login');
+            }}
           >
             Logout
           </button>
         </nav>
       </div>
 
-      <div className="admin-content">
-        <div className="admin-header">
+      <div className="book-mgmt-content">
+        <div className="book-mgmt-header">
           <h1>Book Management</h1>
+          <button 
+            className="book-mgmt-add-button"
+            onClick={() => {
+              setBookForm({
+                title: '',
+                author: '',
+                description: '',
+                image: '',
+                category: 'Fiction',
+                publishedYear: '',
+                isbn: '',
+                price: ''
+              });
+              setBookFormMode('add');
+              setBookFormVisible(true);
+              setEditingBookId(null);
+            }}
+          >
+            <FiPlus /> Add New Book
+          </button>
         </div>
 
-        <div className="admin-main">
-          {error && <div className="error-message">{error}</div>}
-
-          <div className="books-management-container">
-            <div className="books-header">
-              <div className="button-group">
-                <button
-                  onClick={() => {
-                    setBookFormVisible(true);
-                    setBookFormMode('add');
-                    setEditingBookId(null);
-                    setBookForm({
-                      title: '',
-                      author: '',
-                      description: '',
-                      image: '',
-                      category: 'Fiction',
-                      publishedYear: '',
-                      isbn: '',
-                      price: ''
-                    });
-                  }}
-                  className="add-book-button"
-                >
-                  Add New Book
-                </button>
-                <button
-                  onClick={() => navigate('/admin/browse-books')}
-                  className="browse-books-button"
-                >
-                  Browse All Books
-                </button>
-              </div>
-            </div>
-
-            {bookFormVisible && (
-              <div className="book-form-container">
-                <h3>{bookFormMode === 'add' ? 'Add New Book' : 'Edit Book'}</h3>
-                <form onSubmit={handleBookSubmit} className="book-form">
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="title">Title*</label>
+        <div className="book-mgmt-main">
+          {error && <div className="book-mgmt-error-message">{error}</div>}
+          
+          {loading ? (
+            <div className="book-mgmt-loading">Loading books...</div>
+          ) : (
+            <>
+              {bookFormVisible && (
+                <div className="book-form-container">
+                  <form className="book-form" onSubmit={handleBookSubmit}>
+                    <div className="book-form-group">
+                      <label className="book-form-label">Title</label>
                       <input
                         type="text"
-                        id="title"
                         name="title"
                         value={bookForm.title}
                         onChange={handleBookFormChange}
+                        className="book-form-input"
                         required
                       />
                     </div>
-
-                    <div className="form-group">
-                      <label htmlFor="author">Author*</label>
+                    <div className="book-form-group">
+                      <label className="book-form-label">Author</label>
                       <input
                         type="text"
-                        id="author"
                         name="author"
                         value={bookForm.author}
                         onChange={handleBookFormChange}
+                        className="book-form-input"
                         required
                       />
                     </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="image">Image URL*</label>
-                      <input
-                        type="url"
-                        id="image"
-                        name="image"
-                        value={bookForm.image}
-                        onChange={handleBookFormChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="category">Category*</label>
+                    <div className="book-form-group">
+                      <label className="book-form-label">Category</label>
                       <select
-                        id="category"
                         name="category"
                         value={bookForm.category}
                         onChange={handleBookFormChange}
+                        className="book-form-select"
                         required
                       >
                         <option value="Fiction">Fiction</option>
-                        <option value="Non-fiction">Non-fiction</option>
+                        <option value="Non-Fiction">Non-Fiction</option>
                         <option value="Science">Science</option>
                         <option value="Technology">Technology</option>
                         <option value="History">History</option>
                         <option value="Biography">Biography</option>
-                        <option value="Self-help">Self-help</option>
+                        <option value="Children">Children</option>
                         <option value="Other">Other</option>
                       </select>
                     </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="publishedYear">Published Year</label>
+                    <div className="book-form-group">
+                      <label className="book-form-label">Image URL</label>
+                      <input
+                        type="text"
+                        name="image"
+                        value={bookForm.image}
+                        onChange={handleBookFormChange}
+                        className="book-form-input"
+                        required
+                      />
+                    </div>
+                    <div className="book-form-group">
+                      <label className="book-form-label">Published Year</label>
                       <input
                         type="number"
-                        id="publishedYear"
                         name="publishedYear"
                         value={bookForm.publishedYear}
                         onChange={handleBookFormChange}
+                        className="book-form-input"
                       />
                     </div>
-
-                    <div className="form-group">
-                      <label htmlFor="isbn">ISBN</label>
+                    <div className="book-form-group">
+                      <label className="book-form-label">ISBN</label>
                       <input
                         type="text"
-                        id="isbn"
                         name="isbn"
                         value={bookForm.isbn}
                         onChange={handleBookFormChange}
+                        className="book-form-input"
                       />
                     </div>
-
-                    <div className="form-group">
-                      <label htmlFor="price">Price</label>
+                    <div className="book-form-group">
+                      <label className="book-form-label">Price</label>
                       <input
                         type="number"
-                        id="price"
                         name="price"
                         value={bookForm.price}
                         onChange={handleBookFormChange}
-                        step="0.01"
+                        className="book-form-input"
                       />
                     </div>
-                  </div>
-
-                  <div className="form-group full-width">
-                    <label htmlFor="description">Description*</label>
-                    <textarea
-                      id="description"
-                      name="description"
-                      value={bookForm.description}
-                      onChange={handleBookFormChange}
-                      rows={5}
-                      required
-                    ></textarea>
-                  </div>
-
-                  <div className="form-buttons">
-                    <button type="submit" className="save-button">
+                    <div className="book-form-group" style={{ gridColumn: 'span 2' }}>
+                      <label className="book-form-label">Description</label>
+                      <textarea
+                        name="description"
+                        value={bookForm.description}
+                        onChange={handleBookFormChange}
+                        className="book-form-textarea"
+                        required
+                      />
+                    </div>
+                    <button type="submit" className="book-form-submit">
                       {bookFormMode === 'add' ? 'Add Book' : 'Update Book'}
                     </button>
-                    <button
-                      type="button"
-                      className="cancel-button"
-                      onClick={() => setBookFormVisible(false)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
+                  </form>
+                </div>
+              )}
 
-            {loading ? (
-              <div className="loading">Loading books...</div>
-            ) : (
-              <div className="books-table-container">
-                {books.length === 0 ? (
-                  <div className="no-books">No books available. Add some books to get started.</div>
-                ) : (
-                  <table className="books-table">
-                    <thead>
-                      <tr>
-                        <th>Image</th>
-                        <th>Title</th>
-                        <th>Author</th>
-                        <th>Category</th>
-                        <th>Reviews</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {books.map((book) => (
-                        <tr key={book._id}>
-                          <td className="book-image-cell">
-                            <img src={book.image} alt={book.title} className="book-thumbnail" />
-                          </td>
-                          <td>{book.title}</td>
-                          <td>{book.author}</td>
-                          <td>{book.category}</td>
-                          <td>
-                            {book.reviews.length} ({book.reviews && book.reviews.length > 0
-                              ? (book.reviews.reduce((sum, review) => sum + review.rating, 0) / book.reviews.length).toFixed(1)
-                              : '0.0'})
-                          </td>
-                          <td>
-                            <div className="book-actions">
-                              <button
-                                onClick={() => handleEditBook(book)}
-                                className="edit-button"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => handleDeleteBook(book._id)}
-                                className="delete-button"
-                              >
-                                Delete
-                              </button>
-                              <button
-                                onClick={() => navigate(`/books/${book._id}`)}
-                                className="view-button"
-                              >
-                                View
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
+              <div className="book-mgmt-grid">
+                {books.map((book) => (
+                  <div key={book._id} className="book-mgmt-card">
+                    <div className="book-mgmt-image-container">
+                      <img
+                        src={book.image}
+                        alt={book.title}
+                        className="book-mgmt-image"
+                      />
+                    </div>
+                    <div className="book-mgmt-content-wrapper">
+                      <h3 className="book-mgmt-book-title">{book.title}</h3>
+                      <p className="book-mgmt-book-author">by {book.author}</p>
+                      <div className="book-mgmt-actions">
+                        <button
+                          className="book-mgmt-button book-mgmt-button-edit"
+                          onClick={() => {
+                            setBookForm(book);
+                            setBookFormMode('edit');
+                            setBookFormVisible(true);
+                            setEditingBookId(book._id);
+                          }}
+                        >
+                          <FiEdit2 /> Edit
+                        </button>
+                        <button
+                          className="book-mgmt-button book-mgmt-button-delete"
+                          onClick={() => handleDeleteBook(book._id)}
+                        >
+                          <FiTrash2 /> Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </div>
     </div>

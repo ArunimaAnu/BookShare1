@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './AdminDashboard.css';
+import './ComplaintsManagement.css';
 
 const ComplaintsManagement = () => {
   const navigate = useNavigate();
   const [complaints, setComplaints] = useState([]);
-  const [filteredComplaints, setFilteredComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedComplaint, setSelectedComplaint] = useState(null);
-  const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // For response form
-  const [response, setResponse] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [responseText, setResponseText] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -36,7 +33,6 @@ const ComplaintsManagement = () => {
 
         if (response.data.status === 'success') {
           setComplaints(response.data.data);
-          setFilteredComplaints(response.data.data);
         } else {
           setError('Failed to load complaints');
         }
@@ -76,7 +72,7 @@ const ComplaintsManagement = () => {
       );
     }
     
-    setFilteredComplaints(result);
+    setComplaints(result);
   }, [complaints, filterStatus, searchTerm]);
 
   const handleLogout = () => {
@@ -86,7 +82,7 @@ const ComplaintsManagement = () => {
 
   const handleViewComplaint = (complaint) => {
     setSelectedComplaint(complaint);
-    setResponse('');
+    setResponseText('');
   };
 
   const handleCloseComplaint = () => {
@@ -94,7 +90,7 @@ const ComplaintsManagement = () => {
   };
 
   const handleSubmitResponse = async () => {
-    if (!response.trim() || !selectedComplaint) return;
+    if (!responseText.trim() || !selectedComplaint) return;
     
     try {
       setSubmitting(true);
@@ -104,7 +100,7 @@ const ComplaintsManagement = () => {
         `http://localhost:5000/admin/complaints/${selectedComplaint._id}`,
         { 
           status: 'Resolved',
-          adminResponse: response 
+          adminResponse: responseText 
         },
         {
           headers: {
@@ -118,7 +114,7 @@ const ComplaintsManagement = () => {
         setComplaints(prevComplaints => 
           prevComplaints.map(complaint => 
             complaint._id === selectedComplaint._id 
-              ? { ...complaint, status: 'Resolved', adminResponse: response }
+              ? { ...complaint, status: 'Resolved', adminResponse: responseText }
               : complaint
           )
         );
@@ -146,35 +142,35 @@ const ComplaintsManagement = () => {
 
   return (
     <div className="admin-dashboard-container">
-      <div className="admin-sidebar">
-        <div className="admin-logo">Admin Dashboard</div>
-        <nav className="admin-nav">
+      <div className="admindash-sidebar">
+        <div className="admindash-logo">Admin Dashboard</div>
+        <nav className="admindash-nav">
           <button
-            className="nav-item"
+            className="admindash-nav-item"
             onClick={() => navigate('/admin')}
           >
             Dashboard
           </button>
           <button
-            className="nav-item"
+            className="admindash-nav-item"
             onClick={() => navigate('/admin/users')}
           >
             User Management
           </button>
           <button
-            className="nav-item"
+            className="admindash-nav-item"
             onClick={() => navigate('/admin/books')}
           >
             Book Management
           </button>
           <button
-            className="nav-item active"
+            className="admindash-nav-item active"
             onClick={() => navigate('/admin/complaints')}
           >
             Complaints
           </button>
           <button
-            className="nav-item logout"
+            className="admindash-nav-item logout"
             onClick={handleLogout}
           >
             Logout
@@ -182,167 +178,148 @@ const ComplaintsManagement = () => {
         </nav>
       </div>
 
-      <div className="admin-content">
-        <div className="admin-header">
+      <div className="admindash-content">
+        <div className="admindash-header">
           <h1>Complaints Management</h1>
         </div>
 
-        <div className="admin-main">
-          {error && <div className="error-message">{error}</div>}
+        <div className="admindash-main">
+          {error && <div className="admindash-error">{error}</div>}
 
-          <div className="complaints-container">
-            <div className="filters-container">
-              <div className="search-box">
-                <input
-                  type="text"
-                  placeholder="Search complaints..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="search-input"
-                />
-              </div>
-              <div className="status-filter">
-                <select 
-                  value={filterStatus} 
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="status-select"
-                >
-                  <option value="all">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="in progress">In Progress</option>
-                  <option value="resolved">Resolved</option>
-                </select>
-              </div>
+          <div className="complaints-filters">
+            <div className="complaints-search-box">
+              <input
+                type="text"
+                placeholder="Search complaints..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="complaints-search-input"
+              />
             </div>
-
-            {selectedComplaint ? (
-              <div className="complaint-detail">
-                <div className="detail-header">
-                  <h2>Complaint Details</h2>
-                  <button 
-                    className="close-button"
-                    onClick={handleCloseComplaint}
-                  >
-                    &times;
-                  </button>
-                </div>
-                
-                <div className="detail-content">
-                  <div className="detail-row">
-                    <strong>Subject:</strong> 
-                    <span>{selectedComplaint.subject}</span>
-                  </div>
-                  <div className="detail-row">
-                    <strong>Submitted by:</strong>
-                    <span>{selectedComplaint.user.name} ({selectedComplaint.user.email})</span>
-                  </div>
-                  <div className="detail-row">
-                    <strong>Date:</strong>
-                    <span>{new Date(selectedComplaint.createdAt).toLocaleDateString()}</span>
-                  </div>
-                  <div className="detail-row">
-                    <strong>Status:</strong>
-                    <span className={`status-badge ${selectedComplaint.status.toLowerCase()}`}>
-                      {selectedComplaint.status}
-                    </span>
-                  </div>
-                  <div className="detail-row description">
-                    <strong>Description:</strong>
-                    <div className="complaint-description">
-                      {selectedComplaint.description}
-                    </div>
-                  </div>
-                  
-                  {selectedComplaint.adminResponse && (
-                    <div className="detail-row admin-response">
-                      <strong>Admin Response:</strong>
-                      <div className="response-content">
-                        {selectedComplaint.adminResponse}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {selectedComplaint.status !== 'Resolved' && (
-                    <div className="response-form">
-                      <h3>Respond to Complaint</h3>
-                      <textarea
-                        value={response}
-                        onChange={(e) => setResponse(e.target.value)}
-                        placeholder="Type your response here..."
-                        rows={5}
-                        className="response-textarea"
-                      />
-                      <div className="form-actions">
-                        <button 
-                          className="respond-button"
-                          onClick={handleSubmitResponse}
-                          disabled={!response.trim() || submitting}
-                        >
-                          {submitting ? 'Submitting...' : 'Submit Response & Resolve'}
-                        </button>
-                        <button 
-                          className="mark-button"
-                          onClick={() => {
-                            setSelectedComplaint({
-                              ...selectedComplaint,
-                              status: selectedComplaint.status === 'Pending' ? 'In Progress' : 'Pending'
-                            });
-                          }}
-                        >
-                          Mark as {selectedComplaint.status === 'Pending' ? 'In Progress' : 'Pending'}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="complaints-list">
-                <h2>All Complaints ({filteredComplaints.length})</h2>
-                {filteredComplaints.length === 0 ? (
-                  <div className="no-complaints">
-                    {searchTerm || filterStatus !== 'all' 
-                      ? 'No complaints match your filters.' 
-                      : 'No complaints found.'}
-                  </div>
-                ) : (
-                  <table className="complaints-table">
-                    <thead>
-                      <tr>
-                        <th>Subject</th>
-                        <th>User</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredComplaints.map(complaint => (
-                        <tr key={complaint._id}>
-                          <td>{complaint.subject}</td>
-                          <td>{complaint.user.name}</td>
-                          <td>{new Date(complaint.createdAt).toLocaleDateString()}</td>
-                          <td>
-                            <span className={`status-badge ${complaint.status.toLowerCase()}`}>
-                              {complaint.status}
-                            </span>
-                          </td>
-                          <td>
-                            <button
-                              className="view-button"
-                              onClick={() => handleViewComplaint(complaint)}
-                            >
-                              View
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            )}
+            <div className="complaints-status-filter">
+              <select 
+                value={filterStatus} 
+                onChange={(e) => setFilterStatus(e.target.value)}
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="in progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+              </select>
+            </div>
           </div>
+
+          {selectedComplaint ? (
+            <div className="complaint-detail">
+              <div className="complaint-detail-header">
+                <h2>Complaint Details</h2>
+                <button 
+                  className="close-complaint-button"
+                  onClick={handleCloseComplaint}
+                >
+                  &times;
+                </button>
+              </div>
+              
+              <div className="complaint-detail-row">
+                <strong>Subject:</strong> 
+                <span>{selectedComplaint.subject}</span>
+              </div>
+              <div className="complaint-detail-row">
+                <strong>Submitted by:</strong>
+                <span>{selectedComplaint.user.name} ({selectedComplaint.user.email})</span>
+              </div>
+              <div className="complaint-detail-row">
+                <strong>Date:</strong>
+                <span>{new Date(selectedComplaint.createdAt).toLocaleDateString()}</span>
+              </div>
+              <div className="complaint-detail-row">
+                <strong>Status:</strong>
+                <span className={`complaint-status-badge ${selectedComplaint.status.toLowerCase()}`}>
+                  {selectedComplaint.status}
+                </span>
+              </div>
+              <div className="complaint-detail-row">
+                <strong>Description:</strong>
+                <div className="complaint-description">
+                  {selectedComplaint.description}
+                </div>
+              </div>
+              
+              {selectedComplaint.status !== 'Resolved' && (
+                <div className="complaint-response-form">
+                  <h3>Respond to Complaint</h3>
+                  <textarea
+                    value={responseText}
+                    onChange={(e) => setResponseText(e.target.value)}
+                    placeholder="Type your response here..."
+                    rows={5}
+                    className="response-textarea"
+                  />
+                  <div className="complaint-action-buttons">
+                    <button 
+                      className="submit-response-button"
+                      onClick={handleSubmitResponse}
+                      disabled={!responseText.trim() || submitting}
+                    >
+                      {submitting ? 'Submitting...' : 'Submit Response & Resolve'}
+                    </button>
+                    <button 
+                      className="mark-status-button"
+                      onClick={() => {
+                        setSelectedComplaint({
+                          ...selectedComplaint,
+                          status: selectedComplaint.status === 'Pending' ? 'In Progress' : 'Pending'
+                        });
+                      }}
+                    >
+                      Mark as {selectedComplaint.status === 'Pending' ? 'In Progress' : 'Pending'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="complaints-table-container">
+              {loading ? (
+                <div className="loading">Loading complaints...</div>
+              ) : (
+                <table className="complaints-table">
+                  <thead>
+                    <tr>
+                      <th>Subject</th>
+                      <th>User</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {complaints.map(complaint => (
+                      <tr key={complaint._id}>
+                        <td>{complaint.subject}</td>
+                        <td>{complaint.user.name}</td>
+                        <td>{new Date(complaint.createdAt).toLocaleDateString()}</td>
+                        <td>
+                          <span className={`complaint-status-badge ${complaint.status.toLowerCase()}`}>
+                            {complaint.status}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            className="view-complaint-button"
+                            onClick={() => handleViewComplaint(complaint)}
+                          >
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

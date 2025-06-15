@@ -202,13 +202,12 @@ app.post("/login", async (req, res) => {
       },
       "yourSecretKey",
       { expiresIn: "1h" }
-    );
-
-    res.json({
+    );    res.json({
       status: "success",
       message: "Login successful",
       token,
-      userRole: user.role
+      userRole: user.role,
+      userId: user._id
     });
 
   } catch (error) {
@@ -333,6 +332,75 @@ app.post("/logout", (req, res) => {
 });
 
 // ==== ADMIN ROUTES ====
+
+// Admin Routes - Protected by admin middleware
+const adminMiddleware = async (req, res, next) => {
+  try {
+    const token = req.header('x-auth-token');
+    if (!token) {
+      return res.status(401).json({ status: 'error', message: 'No token, authorization denied' });
+    }
+
+    const decoded = jwt.verify(token, 'yourSecretKey');
+    const user = await UserModel.findById(decoded.userId);
+    
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ status: 'error', message: 'Not authorized as admin' });
+    }
+
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.status(401).json({ status: 'error', message: 'Token is not valid' });
+  }
+};
+
+// Admin route to get all users
+app.get('/admin/users', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const users = await UserModel.find().select('-password');
+    res.json({ status: 'success', data: users });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Server error' });
+  }
+});
+
+// Admin route to get all complaints
+app.get('/admin/complaints', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const complaints = await ComplaintModel.find()
+      .populate('user', 'name email')
+      .populate('metadata.bookId', 'title author');
+    
+    if (!complaints) {
+      return res.status(404).json({ status: 'error', message: 'No complaints found' });
+    }
+    
+    res.json({ 
+      status: 'success', 
+      data: complaints.map(complaint => ({
+        _id: complaint._id,
+        subject: complaint.subject,
+        description: complaint.description,
+        status: complaint.status,
+        adminResponse: complaint.adminResponse,
+        user: complaint.user,
+        category: complaint.metadata?.category,
+        bookId: complaint.metadata?.bookId,
+        complaineeId: complaint.metadata?.complaineeId,
+        complaineeName: complaint.metadata?.complaineeName,
+        createdAt: complaint.createdAt
+      }))
+    });
+  } catch (err) {
+    console.error('Error fetching complaints:', err);
+    res.status(500).json({ 
+      status: 'error', 
+      message: 'Failed to fetch complaints',
+      error: err.message 
+    });
+  }
+});
 
 // Get all users (admin only)
 app.get("/admin/users", verifyToken, isAdmin, async (req, res) => {
@@ -2072,9 +2140,7 @@ app.post("/complaints", verifyToken, async (req, res) => {
           message: 'Invalid exchange ID'
         });
       }
-    }
-
-    // Create new complaint with validated structure
+    }    // Create new complaint with validated structure
     const complaintData = {
       user: req.userId,
       subject: cleanSubject,
@@ -2094,13 +2160,11 @@ app.post("/complaints", verifyToken, async (req, res) => {
 
     const complaint = new ComplaintModel(complaintData);
 
-    await complaint.save();
-
-    // Create notification for admin
+    await complaint.save();    // Create notification for admin
     const notification = new NotificationModel({
-      userId: null, // for admin
-      type: 'new_complaint',
-      message: `New complaint submitted: ${subject}`,
+      userId: req.userId,
+      type: 'complaint_submitted',
+      message: `New complaint submitted: ${cleanSubject}`,
       actionLink: `/admin/complaints/${complaint._id}`
     });
 
@@ -2126,13 +2190,11 @@ app.get("/complaints/user", verifyToken, async (req, res) => {
   try {
     const complaints = await ComplaintModel.find({
       $or: [
-        { complainantId: req.userId },
-        { complaineeId: req.userId }
+        { user: req.userId }
       ]
     })
-    .populate('complainantId', 'name')
-    .populate('complaineeId', 'name')
-    .populate('exchangeId')
+    .populate('user', 'name')
+    .populate('metadata.bookId', 'title')
     .sort({ createdAt: -1 });
 
     res.json({
@@ -2149,14 +2211,19 @@ app.get("/complaints/user", verifyToken, async (req, res) => {
   }
 });
 
-// Get a specific complaint details
-app.get("/complaints/:id", verifyToken, async (req, res) => {
+// Update complaint status and response (admin only)
+app.put("/admin/complaints/:id", verifyToken, isAdmin, async (req, res) => {
   try {
-    const complaint = await ComplaintModel.findById(req.params.id)
-      .populate('complainantId', 'name')
-      .populate('complaineeId', 'name')
-      .populate('exchangeId');
+    const { status, adminResponse } = req.body;
 
+    if (!['Pending', 'In Progress', 'Resolved'].includes(status)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid status value'
+      });
+    }
+
+    const complaint = await ComplaintModel.findById(req.params.id);
     if (!complaint) {
       return res.status(404).json({
         status: 'error',
@@ -2164,168 +2231,40 @@ app.get("/complaints/:id", verifyToken, async (req, res) => {
       });
     }
 
-    // Check if user is authorized to view this complaint
-    if (
-      complaint.complainantId._id.toString() !== req.userId &&
-      complaint.complaineeId._id.toString() !== req.userId &&
-      req.user.role !== 'admin'
-    ) {
-      return res.status(403).json({
-        status: 'error',
-        message: 'You are not authorized to view this complaint'
-      });
+    // Update complaint
+    complaint.status = status;
+    if (adminResponse) {
+      complaint.adminResponse = adminResponse;
     }
-
-    res.json({
-      status: 'success',
-      data: complaint
-    });
-  } catch (error) {
-    console.error('Error fetching complaint:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to fetch complaint',
-      error: error.message
-    });
-  }
-});
-
-// Get complaints for an exchange
-app.get("/complaints/exchange/:exchangeId", verifyToken, async (req, res) => {
-  try {
-    const complaints = await ComplaintModel.find({ exchangeId: req.params.exchangeId })
-      .populate('complainantId', 'name')
-      .populate('complaineeId', 'name')
-      .sort({ createdAt: -1 });
-
-    res.json({
-      status: 'success',
-      data: complaints
-    });
-  } catch (error) {
-    console.error('Error fetching exchange complaints:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to fetch complaints',
-      error: error.message
-    });
-  }
-});
-
-// Submit a complaint for an exchange
-app.post("/complaints/exchange/:exchangeId", verifyToken, async (req, res) => {
-  try {
-    const { exchangeId } = req.params;
-    let { subject, description, category } = req.body;
-
-    // Basic validation for required category
-    if (!category) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Please select a category for the complaint'
-      });
-    }
-
-    // Find the exchange first
-    const exchange = await ExchangeModel.findById(exchangeId)
-      .populate('bookId', 'title')
-      .populate('ownerId', 'name')
-      .populate('borrowerId', 'name');
-
-    if (!exchange) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Exchange not found'
-      });
-    }
-
-    // Verify user is part of the exchange
-    const isOwner = exchange.ownerId._id.toString() === req.userId;
-    const isBorrower = exchange.borrowerId._id.toString() === req.userId;
-    
-    if (!isOwner && !isBorrower) {
-      return res.status(403).json({
-        status: 'error',
-        message: 'You are not authorized to file a complaint for this exchange'
-      });
-    }
-
-    // Set defaults for late return complaints
-    if (category === 'No Show/Late') {
-      subject = subject || 'Late return';
-      description = description || `Book was not returned by the agreed return date`;
-    } else {
-      // For other categories, validate subject and description
-      if (!subject?.trim()) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Please provide a subject for the complaint'
-        });
-      }
-      if (!description?.trim()) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Please provide a description for the complaint'
-        });
-      }
-    }
-
-    // Sanitize inputs
-    subject = subject.trim();
-    description = description.trim();
-    category = category.trim();
-
-    // Create the complaint
-    const complaint = new ComplaintModel({
-      complainantId: req.userId,
-      complaineeId: isOwner ? exchange.borrowerId._id : exchange.ownerId._id,
-      subject,
-      description,
-      category,
-      exchangeId,
-      status: 'pending',
-      createdAt: new Date()
-    });
-
     await complaint.save();
 
-    // Create notification for other party
-    const otherPartyId = isOwner ? exchange.borrowerId._id : exchange.ownerId._id;
-    const notification = new NotificationModel({
-      userId: otherPartyId,
-      type: 'new_complaint',
-      bookId: exchange.bookId._id,
-      message: `A complaint has been filed regarding the exchange of "${exchange.bookId.title}"`,
-      actionLink: `/exchanges/${exchangeId}`
-    });
-
-    await notification.save();
-
-    // Create notification for admin
-    const adminNotification = new NotificationModel({
-      userId: null, // for admin
-      type: 'new_complaint',
-      message: `New exchange complaint: ${subject} (Book: ${exchange.bookId.title})`,
-      actionLink: `/admin/complaints/${complaint._id}`
-    });
-
-    await adminNotification.save();
+    // If status is being set to Resolved, create notification for the user
+    if (status === 'Resolved') {
+      const notification = new NotificationModel({
+        userId: complaint.user,
+        type: 'complaint_resolved',
+        message: `Your complaint regarding "${complaint.subject}" has been resolved`,
+        actionLink: `/complaints/${complaint._id}`
+      });
+      await notification.save();
+    }
 
     res.json({
       status: 'success',
-      message: 'Complaint submitted successfully',
+      message: 'Complaint updated successfully',
       data: complaint
     });
 
   } catch (error) {
-    console.error('Error submitting exchange complaint:', error);
+    console.error('Error updating complaint:', error);
     res.status(500).json({
       status: 'error',
-      message: 'Failed to submit complaint',
+      message: 'Failed to update complaint',
       error: error.message
     });
   }
 });
+
 
 // Handle 404 - Route not found
 app.use((req, res) => {
