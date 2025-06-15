@@ -36,7 +36,7 @@ const HomePage = () => {
 
   useEffect(() => {
     setIsVisible(true);
-    
+
     // Simulate fetching stats
     const interval = setInterval(() => {
       setBookStats(prev => ({
@@ -147,19 +147,19 @@ const HomePage = () => {
           <div className="navbar-logo">
             <span className="gradient-text">BookShare</span>
           </div>
-          
+
           {/* Mobile Menu Button */}
           <button className="mobile-menu-button" onClick={toggleMobileMenu}>
             <span className={`hamburger ${showMobileMenu ? 'active' : ''}`}></span>
           </button>
-          
+
           {/* Desktop Menu */}
           <div className="desktop-menu">
             <a href="#features" className="nav-link">Features</a>
             <a href="#how-it-works" className="nav-link">How It Works</a>
             <a href="#testimonials" className="nav-link">Testimonials</a>
           </div>
-          
+
           <div className="auth-buttons">
             <Link to="/login" className="btn-login">
               Log In
@@ -169,7 +169,7 @@ const HomePage = () => {
             </Link>
           </div>
         </div>
-        
+
         {/* Mobile Menu */}
         <div className={`mobile-menu ${showMobileMenu ? 'show' : ''}`}>
           <a href="#features" className="mobile-nav-link" onClick={toggleMobileMenu}>Features</a>
@@ -187,8 +187,8 @@ const HomePage = () => {
       </nav>
 
       {/* Hero Section with animated gradient background */}
-      <section 
-        ref={heroRef} 
+      <section
+        ref={heroRef}
         className="hero-section"
         style={{
           background: `radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, rgba(157, 78, 221, 0.4) 0%, rgba(83, 30, 144, 0.2) 40%, rgba(38, 38, 79, 0) 60%)`,
@@ -200,11 +200,11 @@ const HomePage = () => {
           <div className="blob blob-2"></div>
           <div className="blob blob-3"></div>
         </div>
-        
+
         {/* Floating book icons */}
         <div className="floating-books">
           {[...Array(15)].map((_, i) => (
-            <div 
+            <div
               key={i}
               className="floating-book"
               style={{
@@ -241,7 +241,7 @@ const HomePage = () => {
               </div>
             </div>
 
-            <div 
+            <div
               className={`hero-image ${isVisible ? 'visible' : ''}`}
               style={getParallaxStyle(20)}
             >
@@ -253,21 +253,21 @@ const HomePage = () => {
                     <div className="book-title">DISCOVER</div>
                   </div>
                 </div>
-                
+
                 <div className="book book-2">
                   <div className="book-inner">
                     <div className="book-spine"></div>
                     <div className="book-title">CONNECT</div>
                   </div>
                 </div>
-                
+
                 <div className="book book-3">
                   <div className="book-inner">
                     <div className="book-spine"></div>
                     <div className="book-title">EXCHANGE</div>
                   </div>
                 </div>
-                
+
                 <div className="book-glow"></div>
               </div>
             </div>
@@ -283,28 +283,7 @@ const HomePage = () => {
       </section>
 
       {/* Stats Counter Section */}
-      <section className="stats-section">
-        <div className="grid-pattern"></div>
-        
-        <div className="container">
-          <div className="stats-grid">
-            {[
-              { label: "Books Available", value: bookStats.books.toLocaleString(), icon: "📚", colorClass: "pink-purple-gradient" },
-              { label: "Active Users", value: bookStats.users.toLocaleString(), icon: "👥", colorClass: "purple-indigo-gradient" },
-              { label: "Successful Exchanges", value: bookStats.exchanges.toLocaleString(), icon: "🔄", colorClass: "indigo-pink-gradient" }
-            ].map((stat, index) => (
-              <div key={index} className="stat-card">
-                <div className="stat-icon">{stat.icon}</div>
-                <h3 className={`stat-value ${stat.colorClass}`}>
-                  {stat.value}
-                </h3>
-                <p className="stat-label">{stat.label}</p>
-                <div className={`stat-underline ${stat.colorClass}`}></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+    
 
       {/* Features Section */}
       <section id="features" className="features-section">
@@ -312,7 +291,7 @@ const HomePage = () => {
           <div className="circle circle-1"></div>
           <div className="circle circle-2"></div>
         </div>
-        
+
         <div className="container">
           <div className="section-header">
             <div className="section-label">
@@ -328,10 +307,10 @@ const HomePage = () => {
 
           <div className="features-grid">
             {features.map((feature, index) => (
-              <div 
+              <div
                 key={index}
                 className="feature-card"
-                style={{ 
+                style={{
                   transitionDelay: `${index * 0.1}s`,
                   transform: `translateY(${Math.min(30, Math.max(0, (scrollY - 1000 + index * 100) / 5))}px)`,
                   opacity: Math.min(1, Math.max(0.2, (scrollY - 800 + index * 100) / 400))
@@ -352,7 +331,7 @@ const HomePage = () => {
       {/* How It Works Section */}
       <section id="how-it-works" className="steps-section">
         <div className="grid-dots"></div>
-        
+
         <div className="container">
           <div className="section-header">
             <div className="section-label">
@@ -368,12 +347,12 @@ const HomePage = () => {
 
           <div className="steps-container">
             <div className="steps-line"></div>
-            
+
             {steps.map((step, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="step-card"
-                style={{ 
+                style={{
                   transitionDelay: `${index * 0.1}s`,
                   transform: `translateY(${Math.min(50, Math.max(0, (scrollY - 1500 + index * 150) / 10))}px)`,
                   opacity: Math.min(1, Math.max(0.2, (scrollY - 1300 + index * 150) / 500))
@@ -394,79 +373,17 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section id="testimonials" className="testimonials-section">
-        <div className="glow-spots">
-          <div className="glow-spot spot-1"></div>
-          <div className="glow-spot spot-2"></div>
-        </div>
-        
-        <div className="container">
-          <div className="section-header">
-            <div className="section-label">
-              TESTIMONIALS
-            </div>
-            <h2 className="section-title gradient-text">
-              What Our Community Says
-            </h2>
-            <p className="section-description">
-              Hear from book lovers who have transformed their reading experience.
-            </p>
-          </div>
-
-          <div className="testimonials-container">
-            <div className="testimonials-slider">
-              {testimonials.map((testimonial, index) => (
-                <div 
-                  key={index}
-                  className={`testimonial-card ${currentTestimonial === index ? 'active' : ''}`}
-                  style={{ 
-                    transform: `translateX(${(index - currentTestimonial) * 100}%)`,
-                  }}
-                >
-                  <div className="quote-marks">
-                    <div className="quote-start">"</div>
-                    <div className="quote-end">"</div>
-                  </div>
-                  
-                  <div className="testimonial-author">
-                    <div className="author-avatar">
-                      {testimonial.author.charAt(0)}
-                    </div>
-                    <div className="author-info">
-                      <h4 className="author-name">{testimonial.author}</h4>
-                      <p className="author-location">{testimonial.location}</p>
-                    </div>
-                  </div>
-                  <p className="testimonial-text">"{testimonial.text}"</p>
-                  <div className="testimonial-glow"></div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="testimonial-dots">
-              {testimonials.map((_, index) => (
-                <button 
-                  key={index}
-                  onClick={() => setCurrentTestimonial(index)}
-                  className={`testimonial-dot ${currentTestimonial === index ? 'active' : ''}`}
-                  aria-label={`Go to testimonial ${index + 1}`}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+     
 
       {/* CTA Section */}
       <section className="cta-section">
         <div className="gradient-bg">
           <div className="radial-overlay"></div>
         </div>
-        
+
         <div className="floating-particles">
           {[...Array(20)].map((_, i) => (
-            <div 
+            <div
               key={i}
               className="particle"
               style={{
@@ -478,7 +395,7 @@ const HomePage = () => {
             ></div>
           ))}
         </div>
-        
+
         <div className="container">
           <div className="cta-card">
             <div className="cta-content">
@@ -489,24 +406,24 @@ const HomePage = () => {
                 Start exchanging books and connecting with fellow readers today.
               </p>
             </div>
-            
+
             <div className="cta-buttons">
               <Link to="/register" className="btn-cta-primary">
                 <span className="btn-text">Sign Up Now</span>
                 <span className="btn-icon">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M14 5L21 12M21 12L14 19M21 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M14 5L21 12M21 12L14 19M21 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </span>
                 <span className="btn-overlay"></span>
               </Link>
-              
+
               <button className="btn-cta-secondary">
                 <span className="btn-text">Learn More</span>
                 <span className="btn-overlay"></span>
               </button>
             </div>
-            
+
             <div className="cta-decoration cta-decoration-1"></div>
             <div className="cta-decoration cta-decoration-2"></div>
           </div>
@@ -517,7 +434,7 @@ const HomePage = () => {
       <footer className="footer">
         <div className="footer-glow"></div>
         <div className="footer-line"></div>
-        
+
         <div className="container">
           <div className="footer-grid">
             <div className="footer-brand">
@@ -531,20 +448,20 @@ const HomePage = () => {
               <div className="newsletter">
                 <h4 className="newsletter-title">Subscribe to Our Newsletter</h4>
                 <div className="newsletter-form">
-                  <input 
-                    type="email" 
-                    placeholder="Your email address" 
+                  <input
+                    type="email"
+                    placeholder="Your email address"
                     className="newsletter-input"
                   />
                   <button className="newsletter-button">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M14 5L21 12M21 12L14 19M21 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M14 5L21 12M21 12L14 19M21 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
                 </div>
               </div>
             </div>
-            
+
             <div className="footer-links">
               <h4 className="footer-links-title">Quick Links</h4>
               <ul className="footer-menu">
@@ -562,7 +479,7 @@ const HomePage = () => {
                 </li>
               </ul>
             </div>
-            
+
             <div className="footer-links">
               <h4 className="footer-links-title">Support</h4>
               <ul className="footer-menu">
@@ -580,7 +497,7 @@ const HomePage = () => {
                 </li>
               </ul>
             </div>
-            
+
             <div className="footer-contact">
               <h4 className="footer-links-title">Connect With Us</h4>
               <div className="social-links">
@@ -597,7 +514,7 @@ const HomePage = () => {
                   <span className="social-icon">y</span>
                 </a>
               </div>
-              
+
               <div className="contact-info">
                 <h4 className="footer-links-title">Contact</h4>
                 <p className="contact-item">
@@ -615,7 +532,7 @@ const HomePage = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="footer-bottom">
             <p className="copyright">
               &copy; {new Date().getFullYear()} BookShare. All rights reserved.
@@ -627,7 +544,7 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="footer-corner"></div>
       </footer>
     </div>

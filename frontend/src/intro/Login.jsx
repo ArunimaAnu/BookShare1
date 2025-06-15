@@ -35,15 +35,13 @@ const Login = () => {
       const response = await axios.post('http://localhost:5000/login', {
         email: formData.email,
         password: formData.password
-      });
-
-      if (response.data.status === 'success') {
+      });      if (response.data.status === 'success') {
         // Store token in localStorage
         localStorage.setItem('token', response.data.token);
         
-        // Redirect to dashboard or home page
-        // Store the user role in localStorage for easy access
+        // Store user data in localStorage
         localStorage.setItem('userRole', response.data.userRole);
+        localStorage.setItem('userId', response.data.userId);
         
         // Redirect to admin dashboard for admins, user dashboard for regular users
         if (response.data.userRole === 'admin') {

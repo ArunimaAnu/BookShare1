@@ -16,11 +16,11 @@ const AdminDashboard = () => {
   const [recentComplaints, setRecentComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
+        setError(null);
         const token = localStorage.getItem('token');
 
         if (!token) {
@@ -28,58 +28,55 @@ const AdminDashboard = () => {
           return;
         }
 
-        // Fetch users
-        const usersResponse = await axios.get('http://localhost:5000/admin/users', {
-          headers: {
-            'x-auth-token': token
-          }
-        });
+        // Fetch data in parallel
+        const [usersResponse, booksResponse, complaintsResponse] = await Promise.all([
+          axios.get('http://localhost:5000/admin/users', {
+            headers: { 'x-auth-token': token }
+          }),
+          axios.get('http://localhost:5000/books?limit=100', {
+            headers: { 'x-auth-token': token }
+          }),
+          axios.get('http://localhost:5000/admin/complaints', {
+            headers: { 'x-auth-token': token }
+          })
+        ]);
 
-        // Fetch books
-        const booksResponse = await axios.get('http://localhost:5000/books?limit=100', {
-          headers: {
-            'x-auth-token': token
-          }
-        });
-
-        // Fetch complaints
-        const complaintsResponse = await axios.get('http://localhost:5000/admin/complaints', {
-          headers: {
-            'x-auth-token': token
-          }
-        });
-
-        if (
-          usersResponse.data.status === 'success' && 
-          booksResponse.data.status === 'success' &&
-          complaintsResponse.data.status === 'success'
-        ) {
-          // Calculate stats
-          const totalReviews = booksResponse.data.data.reduce(
-            (sum, book) => sum + book.reviews.length, 0
-          );
-
-          setStats({
-            totalUsers: usersResponse.data.data.length,
-            totalBooks: booksResponse.data.data.length,
-            totalReviews: totalReviews,
-            totalComplaints: complaintsResponse.data.data.length
-          });
-
-          // Set recent users and books (last 5)
-          setRecentUsers(usersResponse.data.data.slice(0, 5));
-          setRecentBooks(booksResponse.data.data.slice(0, 5));
-          
-          // Set recent complaints (last 5)
-          setRecentComplaints(complaintsResponse.data.data.slice(0, 5));
-        } else {
-          setError('Failed to load dashboard data');
+        // Validate responses
+        if (!usersResponse.data || usersResponse.data.status !== 'success') {
+          throw new Error('Failed to fetch users data');
         }
+
+        if (!booksResponse.data || booksResponse.data.status !== 'success') {
+          throw new Error('Failed to fetch books data');
+        }
+
+        if (!complaintsResponse.data || complaintsResponse.data.status !== 'success') {
+          throw new Error('Failed to fetch complaints data');
+        }
+
+        // Calculate stats
+        const totalReviews = booksResponse.data.data.reduce(
+          (sum, book) => sum + (book.reviews?.length || 0), 
+          0
+        );
+
+        // Update all states
+        setStats({
+          totalUsers: usersResponse.data.data.length,
+          totalBooks: booksResponse.data.data.length,
+          totalReviews: totalReviews,
+          totalComplaints: complaintsResponse.data.data.length
+        });
+
+        setRecentUsers(usersResponse.data.data.slice(0, 5));
+        setRecentBooks(booksResponse.data.data.slice(0, 5));
+        setRecentComplaints(complaintsResponse.data.data.slice(0, 5));
+
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
-        setError('Error loading dashboard data');
+        setError(err.message || 'Error loading dashboard data');
 
-        if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+        if (err.response?.status === 401 || err.response?.status === 403) {
           localStorage.removeItem('token');
           navigate('/login');
         }

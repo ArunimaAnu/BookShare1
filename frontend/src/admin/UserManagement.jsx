@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './AdminDashboard.css';
+import './UserManagement.css';
 
 const UserManagement = () => {
   const navigate = useNavigate();
@@ -52,57 +52,41 @@ const UserManagement = () => {
   const handleUpdateRole = async (userId) => {
     try {
       const token = localStorage.getItem('token');
-      
-      const response = await axios.put(
+      const response = await axios.patch(
         `http://localhost:5000/admin/users/${userId}/role`,
         { role: newRole },
-        {
-          headers: {
-            'x-auth-token': token
-          }
-        }
+        { headers: { 'x-auth-token': token } }
       );
 
       if (response.data.status === 'success') {
-        // Update users list
         setUsers(users.map(user => 
           user._id === userId ? { ...user, role: newRole } : user
         ));
         setRoleUpdateMode(false);
-        setSelectedUser(null);
-      } else {
-        setError('Failed to update user role');
+        setNewRole('');
       }
     } catch (err) {
-      console.error('Error updating role:', err);
-      setError('Error updating user role');
+      console.error('Error updating user role:', err);
+      setError('Failed to update user role');
     }
   };
 
   const handleDeleteUser = async (userId) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        const token = localStorage.getItem('token');
-        
-        const response = await axios.delete(
-          `http://localhost:5000/admin/users/${userId}`,
-          {
-            headers: {
-              'x-auth-token': token
-            }
-          }
-        );
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
 
-        if (response.data.status === 'success') {
-          // Remove user from list
-          setUsers(users.filter(user => user._id !== userId));
-        } else {
-          setError('Failed to delete user');
-        }
-      } catch (err) {
-        console.error('Error deleting user:', err);
-        setError('Error deleting user');
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.delete(
+        `http://localhost:5000/admin/users/${userId}`,
+        { headers: { 'x-auth-token': token } }
+      );
+
+      if (response.data.status === 'success') {
+        setUsers(users.filter(user => user._id !== userId));
       }
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      setError('Failed to delete user');
     }
   };
 
@@ -113,50 +97,50 @@ const UserManagement = () => {
 
   return (
     <div className="admin-dashboard-container">
-      <div className="admin-sidebar">
-        <div className="admin-logo">Admin Dashboard</div>
-        <nav className="admin-nav">
-          <button 
-            className="nav-item"
+      <div className="admindash-sidebar">
+        <div className="admindash-logo">Admin Dashboard</div>
+        <nav className="admindash-nav">
+          <button
+            className="admindash-nav-item"
             onClick={() => navigate('/admin')}
           >
             Dashboard
           </button>
-          <button 
-            className="nav-item active"
+          <button
+            className="admindash-nav-item active"
             onClick={() => navigate('/admin/users')}
           >
             User Management
           </button>
-          <button 
-            className="nav-item"
+          <button
+            className="admindash-nav-item"
             onClick={() => navigate('/admin/books')}
           >
             Book Management
           </button>
           <button
-            className="nav-item"
+            className="admindash-nav-item"
             onClick={() => navigate('/admin/complaints')}
           >
             Complaints
           </button>
           <button
-            className="nav-item logout"
+            className="admindash-nav-item logout"
             onClick={handleLogout}
           >
             Logout
           </button>
         </nav>
       </div>
-      
-      <div className="admin-content">
-        <div className="admin-header">
+
+      <div className="admindash-content">
+        <div className="admindash-header">
           <h1>User Management</h1>
         </div>
-        
-        <div className="admin-main">
-          {error && <div className="error-message">{error}</div>}
-          
+
+        <div className="admindash-main">
+          {error && <div className="admindash-error">{error}</div>}
+
           {loading ? (
             <div className="loading">Loading users...</div>
           ) : (
@@ -167,7 +151,6 @@ const UserManagement = () => {
                     <th>Name</th>
                     <th>Email</th>
                     <th>Role</th>
-                    <th>Created At</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -176,57 +159,62 @@ const UserManagement = () => {
                     <tr key={user._id}>
                       <td>{user.name}</td>
                       <td>{user.email}</td>
-                      <td>{user.role}</td>
-                      <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                       <td>
-                        {selectedUser === user._id && roleUpdateMode ? (
-                          <div className="role-update-controls">
-                            <select
-                              value={newRole}
-                              onChange={(e) => setNewRole(e.target.value)}
-                              className="role-select"
-                            >
-                              <option value="">Select Role</option>
-                              <option value="user">User</option>
-                              <option value="admin">Admin</option>
-                            </select>
-                            <button 
-                              onClick={() => handleUpdateRole(user._id)}
-                              className="save-button"
-                              disabled={!newRole}
-                            >
-                              Save
-                            </button>
-                            <button 
-                              onClick={() => {
-                                setRoleUpdateMode(false);
-                                setSelectedUser(null);
-                              }}
-                              className="cancel-button"
-                            >
-                              Cancel
-                            </button>
-                          </div>
+                        {roleUpdateMode && selectedUser === user._id ? (
+                          <select
+                            value={newRole}
+                            onChange={(e) => setNewRole(e.target.value)}
+                          >
+                            <option value="">Select Role</option>
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                          </select>
                         ) : (
-                          <div className="user-actions">
-                            <button 
-                              onClick={() => {
-                                setSelectedUser(user._id);
-                                setRoleUpdateMode(true);
-                                setNewRole(user.role);
-                              }}
-                              className="edit-button"
-                            >
-                              Change Role
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteUser(user._id)}
-                              className="delete-button"
-                            >
-                              Delete
-                            </button>
-                          </div>
+                          <span className={`user-role ${user.role}`}>{user.role}</span>
                         )}
+                      </td>
+                     
+                      <td>
+                        <div className="user-actions">
+                          {roleUpdateMode && selectedUser === user._id ? (
+                            <>
+                              <button
+                                onClick={() => handleUpdateRole(user._id)}
+                                className="user-action-button save-role"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setRoleUpdateMode(false);
+                                  setSelectedUser(null);
+                                  setNewRole('');
+                                }}
+                                className="user-action-button cancel"
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setRoleUpdateMode(true);
+                                  setSelectedUser(user._id);
+                                  setNewRole(user.role);
+                                }}
+                                className="user-action-button change-role"
+                              >
+                                Change Role
+                              </button>                              <button
+                                onClick={() => handleDeleteUser(user._id)}
+                                className="user-action-button delete"
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

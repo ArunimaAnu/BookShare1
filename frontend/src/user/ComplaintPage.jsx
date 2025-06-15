@@ -67,27 +67,27 @@ const ComplaintPage = () => {
       ...prev,
       [name]: value
     }));
-  };
-  const handleSubmit = async (e) => {
+  };  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);    try {
+    setLoading(true);
+    try {
       const token = localStorage.getItem('token');
-      if (!token) {
+      const userId = localStorage.getItem('userId');
+      if (!token || !userId) {
         setError('Please log in to submit a complaint');
         setLoading(false);
         return;
-      }      // Validate category
+      }// Validate category
       if (!['behavior', 'book_condition', 'no_show', 'payment', 'communication', 'other'].includes(complaintData.category)) {
         setError('Invalid category selected');
         setLoading(false);
         return;
-      }
-
-      let complaintPayload = {
+      }      let complaintPayload = {
         subject: complaintData.subject.trim(),
         description: complaintData.description.trim(),
-        category: complaintData.category
+        category: complaintData.category,
+        user: localStorage.getItem('userId')
       };
 
       if (exchange) {

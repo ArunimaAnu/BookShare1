@@ -28,12 +28,10 @@ const BookCardSkeleton = () => (
       <div className="loading-skeleton book-cover-skeleton" />
     </div>
     <div className="userdash-book-info">
-      <div className="loading-skeleton" style={{ width: '90%', height: '24px', marginBottom: '12px', borderRadius: '6px' }} />
-      <div className="loading-skeleton" style={{ width: '70%', height: '18px', marginBottom: '16px', borderRadius: '4px' }} />
-      <div className="loading-skeleton" style={{ width: '50%', height: '16px', marginBottom: '12px', borderRadius: '4px' }} />
-      <div style={{ marginTop: 'auto' }}>
-        <div className="loading-skeleton" style={{ width: '40%', height: '24px', borderRadius: '6px' }} />
-      </div>
+      <div className="loading-skeleton" style={{ height: '24px', width: '90%', marginBottom: '8px' }} />
+      <div className="loading-skeleton" style={{ height: '18px', width: '70%', marginBottom: '12px' }} />
+      <div className="loading-skeleton" style={{ height: '16px', width: '50%', marginBottom: '8px' }} />
+      <div className="loading-skeleton" style={{ height: '16px', width: '40%' }} />
     </div>
   </div>
 );
@@ -458,22 +456,29 @@ const handleDeleteBook = async (bookId) => {
                         <BookCardSkeleton key={`skeleton-${index}`} />
                       ))}
                     </div>
-                  ) : (<div className="userdash-books-grid">
-                      {recentBooks.map(book => (
+                  ) : (<div className="userdash-books-grid">                  {recentBooks.map(book => (
                         <div 
                           key={book._id} 
                           className="userdash-book-card"
                           onClick={() => navigate(`/books/${book._id}`)}
                         >
                           <div className="userdash-book-cover-wrap">
+                            <div className="userdash-book-loading-overlay">
+                              <div className="userdash-book-loading-spinner"></div>
+                            </div>
                             <img 
                               src={book.image || '/default-book-cover.jpg'} 
                               alt={book.title}
                               className="userdash-book-cover"
-                              onLoad={(e) => e.target.classList.add('loaded')}
+                              onLoad={(e) => {
+                                e.target.classList.add('loaded');
+                                e.target.closest('.userdash-book-cover-wrap').classList.add('loaded');
+                              }}
                               onError={(e) => {
                                 e.target.onerror = null;
                                 e.target.src = '/default-book-cover.jpg';
+                                e.target.classList.add('error');
+                                e.target.closest('.userdash-book-cover-wrap').classList.add('loaded');
                               }}
                             />
                           </div>
@@ -667,34 +672,37 @@ const handleDeleteBook = async (bookId) => {
             <div className="section-info">
               <p>Showing {myBooks.length} book{myBooks.length !== 1 ? 's' : ''} that you've added</p>
             </div>
-            
-            <div className="books-grid large-grid">
+              <div className="userdash-books-grid">
               {myBooks.map(book => (
                 <div 
                   key={book._id} 
-                  className="book-card"
+                  className="userdash-book-card"
                   onClick={() => navigate(`/books/${book._id}`)}
                 >
-                  <div className="book-thumbnail">
+                  <div className="userdash-book-cover-wrap">
+                    <div className="userdash-book-loading-overlay">
+                      <div className="userdash-book-loading-spinner"></div>
+                    </div>
                     <img 
                       src={book.image || '/default-book-cover.jpg'} 
                       alt={book.title}
-                      className="book-cover-image"
+                      className="userdash-book-cover"
+                      onLoad={(e) => {
+                        e.target.classList.add('loaded');
+                        e.target.closest('.userdash-book-cover-wrap').classList.add('loaded');
+                      }}
                       onError={(e) => {
                         e.target.onerror = null;
                         e.target.src = '/default-book-cover.jpg';
+                        e.target.classList.add('error');
+                        e.target.closest('.userdash-book-cover-wrap').classList.add('loaded');
                       }}
-                    />
-                    <div className={`status-indicator ${book.status}`}>
-                      {book.status}
-                    </div>
-                  </div>
-                  <div className="book-card-info">
-                    <h4 className="book-title">{book.title}</h4>
-                    <p className="book-author">{book.author}</p>
-                    
-                    <div className="book-rating">
-                      <div className="stars">
+                    />                  </div>
+                  <div className="userdash-book-info">
+                    <h4 className="userdash-book-title">{book.title}</h4>
+                    <p className="userdash-book-author">{book.author}</p>
+                      <div className="userdash-book-rating">
+                      <div className="userdash-stars">
                         {renderStars(book.rating || 0)}
                       </div>
                       <span className="review-count">
@@ -702,14 +710,12 @@ const handleDeleteBook = async (bookId) => {
                       </span>
                     </div>
                     
-                    <div className="book-location">
+                    <div className="userdash-book-location">
                       {book.location}{book.area ? `, ${book.area}` : ''}
                     </div>
                     
-                    <div className="book-status">
-                      <span className={`status-badge ${book.needsReturn ? 'return' : 'no-return'}`}>
-                        {book.needsReturn ? 'Needs Return' : 'Gift'}
-                      </span>
+                    <div className={`userdash-status-badge ${book.status ? book.status : ''} ${book.needsReturn ? 'return' : 'no-return'}`}>
+                      {book.needsReturn ? 'Needs Return' : 'Gift'}
                     </div>
                     
                     <div className="book-actions">

@@ -100,8 +100,33 @@ const AdminBookDetail = () => {
   if (loading) {
     return (
       <div className="admin-dashboard-container">
-        <div className="admin-content">
-          <div className="loading">Loading book details...</div>
+        <div className="admindash-sidebar">
+          <div className="admindash-logo">Admin Dashboard</div>
+          <nav className="admindash-nav">
+            <button className="admindash-nav-item" onClick={() => navigate('/admin')}>
+              Dashboard
+            </button>
+            <button className="admindash-nav-item" onClick={() => navigate('/admin/users')}>
+              User Management
+            </button>
+            <button className="admindash-nav-item active" onClick={() => navigate('/admin/books')}>
+              Book Management
+            </button>
+            <button className="admindash-nav-item" onClick={() => navigate('/admin/complaints')}>
+              Complaints
+            </button>
+            <button className="admindash-nav-item logout" onClick={() => navigate('/login')}>
+              Logout
+            </button>
+          </nav>
+        </div>
+        <div className="admindash-content">
+          <div className="admindash-header">
+            <h1>Book Details</h1>
+          </div>
+          <div className="admindash-main">
+            <div className="loading">Loading book details...</div>
+          </div>
         </div>
       </div>
     );
@@ -110,11 +135,36 @@ const AdminBookDetail = () => {
   if (!book) {
     return (
       <div className="admin-dashboard-container">
-        <div className="admin-content">
-          <div className="error-message">Book not found</div>
-          <button onClick={() => navigate('/admin/books')} className="back-button">
-            <FaArrowLeft /> Back to Books
-          </button>
+        <div className="admindash-sidebar">
+          <div className="admindash-logo">Admin Dashboard</div>
+          <nav className="admindash-nav">
+            <button className="admindash-nav-item" onClick={() => navigate('/admin')}>
+              Dashboard
+            </button>
+            <button className="admindash-nav-item" onClick={() => navigate('/admin/users')}>
+              User Management
+            </button>
+            <button className="admindash-nav-item active" onClick={() => navigate('/admin/books')}>
+              Book Management
+            </button>
+            <button className="admindash-nav-item" onClick={() => navigate('/admin/complaints')}>
+              Complaints
+            </button>
+            <button className="admindash-nav-item logout" onClick={() => navigate('/login')}>
+              Logout
+            </button>
+          </nav>
+        </div>
+        <div className="admindash-content">
+          <div className="admindash-header">
+            <h1>Book Details</h1>
+          </div>
+          <div className="admindash-main">
+            <div className="error-message">Book not found</div>
+            <button onClick={() => navigate('/admin/books')} className="back-button">
+              <FaArrowLeft /> Back to Books
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -122,125 +172,152 @@ const AdminBookDetail = () => {
 
   return (
     <div className="admin-dashboard-container">
-      <div className="admin-sidebar">
-        <div className="admin-logo">Admin Dashboard</div>
-        <nav className="admin-nav">
-          <button className="nav-item" onClick={() => navigate('/admin')}>
+      <div className="admindash-sidebar">
+        <div className="admindash-logo">Admin Dashboard</div>
+        <nav className="admindash-nav">
+          <button className="admindash-nav-item" onClick={() => navigate('/admin')}>
             Dashboard
           </button>
-          <button className="nav-item" onClick={() => navigate('/admin/users')}>
+          <button className="admindash-nav-item" onClick={() => navigate('/admin/users')}>
             User Management
           </button>
-          <button className="nav-item active" onClick={() => navigate('/admin/books')}>
+          <button className="admindash-nav-item active" onClick={() => navigate('/admin/books')}>
             Book Management
           </button>
-          <button className="nav-item" onClick={() => navigate('/admin/complaints')}>
+          <button className="admindash-nav-item" onClick={() => navigate('/admin/complaints')}>
             Complaints
+          </button>
+          <button className="admindash-nav-item logout" onClick={() => navigate('/login')}>
+            Logout
           </button>
         </nav>
       </div>
 
-      <div className="admin-content">
-        <div className="book-detail-header">
-          <button onClick={() => navigate('/admin/books')} className="back-button">
-            <FaArrowLeft /> Back to Books
-          </button>
-          <div className="header-actions">
-            <button onClick={() => navigate(`/edit-book/${id}`)} className="edit-button">
-              <FaEdit /> Edit Book
-            </button>
-            <button onClick={handleDeleteBook} className="delete-button">
-              <FaTrash /> Delete Book
-            </button>
-          </div>
+      <div className="admindash-content">
+        <div className="admindash-header">
+          <h1>Book Details</h1>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
-
-        <div className="book-detail-content">
-          <div className="book-detail-grid">
-            <div className="book-image">
-              <img 
-                src={book.image || '/default-book-cover.jpg'} 
-                alt={book.title}
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = '/default-book-cover.jpg';
-                }}
-              />
+        <div className="admindash-main">
+          <div className="admindash-section">
+            <div className="book-actions">
+              <button onClick={() => navigate('/admin/books')} className="back-button">
+                <FaArrowLeft /> Back to Books
+              </button>
+              <div className="action-buttons">
+                <button onClick={() => navigate(`/edit-book/${id}`)} className="admindash-action-button">
+                  <FaEdit /> Edit Book
+                </button>
+                <button onClick={handleDeleteBook} className="admindash-action-button" style={{ backgroundColor: '#ef4444' }}>
+                  <FaTrash /> Delete Book
+                </button>
+              </div>
             </div>
 
-            <div className="book-info">
-              <h1 className="book-title">{book.title}</h1>
-              <p className="book-author">by {book.author}</p>
+            {error && <div className="admindash-error-message">{error}</div>}
 
-              <div className="book-meta">
-                <div className="meta-item">
-                  <FaUser />
-                  <span>Owner: {book.userId.name}</span>
-                </div>
-
-                <div className="meta-item">
-                  <FaTags />
-                  <span>Genre: {book.genre}</span>
-                </div>
-
-                <div className="meta-item">
-                  <FaMapMarkerAlt />
-                  <span>Location: {book.location}{book.area ? `, ${book.area}` : ''}</span>
-                </div>
-
-                <div className="meta-item">
-                  <FaCalendarAlt />
-                  <span>Added: {formatDate(book.createdAt)}</span>
-                </div>
+            <div className="admindash-book-detail">
+              <div className="book-cover">
+                <img 
+                  src={book.image || '/default-book-cover.jpg'} 
+                  alt={book.title}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/default-book-cover.jpg';
+                  }}
+                />
               </div>
 
-              <div className="book-rating">
-                <div className="stars">
-                  {renderStars(book.rating || 0)}
-                </div>
-                <span className="rating-count">
-                  ({book.reviews ? book.reviews.length : 0} reviews)
-                </span>
-              </div>
+              <div className="book-content">
+                <h2 className="book-title">{book.title}</h2>
+                <p className="book-author">by {book.author}</p>
 
-              {book.description && (
-                <div className="book-description">
-                  <h3>Description</h3>
-                  <p>{book.description}</p>
-                </div>
-              )}
+                <div className="book-info-grid">
+                  <div className="info-item">
+                    <FaUser className="info-icon" />
+                    <div>
+                      <label>Owner</label>
+                      <span>{book.userId.name}</span>
+                    </div>
+                  </div>
 
-              <div className="book-status">
-                <h3>Status</h3>
-                <div className="status-badge">{book.status}</div>
-                <div className="return-policy">
-                  {book.needsReturn ? 'Requires Return' : 'No Return Required'}
-                </div>
-              </div>
+                  <div className="info-item">
+                    <FaTags className="info-icon" />
+                    <div>
+                      <label>Genre</label>
+                      <span>{book.genre}</span>
+                    </div>
+                  </div>
 
-              {book.reviews && book.reviews.length > 0 && (
-                <div className="book-reviews">
-                  <h3>Reviews</h3>
-                  <div className="reviews-list">
-                    {book.reviews.map((review, index) => (
-                      <div key={index} className="review-item">
-                        <div className="review-header">
-                          <div className="reviewer-info">
-                            <span className="reviewer-name">{review.userId?.name || 'Anonymous'}</span>
-                            <span className="review-date">{formatDate(review.createdAt)}</span>
-                          </div>
-                          <div className="review-rating">
-                            {renderStars(review.rating)}
-                          </div>
-                        </div>
-                        <div className="review-content">{review.comment}</div>
-                      </div>
-                    ))}
+                  <div className="info-item">
+                    <FaMapMarkerAlt className="info-icon" />
+                    <div>
+                      <label>Location</label>
+                      <span>{book.location}{book.area ? `, ${book.area}` : ''}</span>
+                    </div>
+                  </div>
+
+                  <div className="info-item">
+                    <FaCalendarAlt className="info-icon" />
+                    <div>
+                      <label>Added</label>
+                      <span>{formatDate(book.createdAt)}</span>
+                    </div>
                   </div>
                 </div>
-              )}
+
+                <div className="book-rating-section">
+                  <label>Rating</label>
+                  <div className="rating-display">
+                    <div className="stars">
+                      {renderStars(book.rating || 0)}
+                    </div>
+                    <span className="review-count">
+                      ({book.reviews ? book.reviews.length : 0} reviews)
+                    </span>
+                  </div>
+                </div>
+
+                {book.description && (
+                  <div className="book-description-section">
+                    <label>Description</label>
+                    <p className="description-text">{book.description}</p>
+                  </div>
+                )}
+
+                <div className="book-status-section">
+                  <div className="status-info">
+                    <label>Status</label>
+                    <div className="admindash-status-badge">{book.status}</div>
+                  </div>
+                  <div className="return-info">
+                    <label>Return Policy</label>
+                    <span>{book.needsReturn ? 'Requires Return' : 'No Return Required'}</span>
+                  </div>
+                </div>
+
+                {book.reviews && book.reviews.length > 0 && (
+                  <div className="book-reviews-section">
+                    <h3>Reviews</h3>
+                    <div className="reviews-grid">
+                      {book.reviews.map((review, index) => (
+                        <div key={index} className="review-card">
+                          <div className="review-header">
+                            <div className="reviewer-details">
+                              <span className="reviewer-name">{review.userId?.name || 'Anonymous'}</span>
+                              <span className="review-date">{formatDate(review.createdAt)}</span>
+                            </div>
+                            <div className="review-stars">
+                              {renderStars(review.rating)}
+                            </div>
+                          </div>
+                          <p className="review-text">{review.comment}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

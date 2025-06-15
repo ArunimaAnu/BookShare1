@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FaSearch, FaFilter, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
-import './AdminDashboard.css';
+import { FaSearch, FaFilter, FaEdit, FaTrash } from 'react-icons/fa';
+import './AdminBrowseBooks.css';
 
 const AdminBrowseBooks = () => {
   const navigate = useNavigate();
@@ -13,90 +13,64 @@ const AdminBrowseBooks = () => {
   const [filterGenre, setFilterGenre] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
-  // Genre options
   const genres = [
-    'Fiction',
-    'Non-fiction',
-    'Mystery',
-    'Romance',
-    'Science Fiction',
-    'Fantasy',
-    'Biography',
-    'History',
-    'Self-Help',
-    'Business',
-    'Technology',
-    'Other'
+    'Fiction', 'Non-fiction', 'Mystery', 'Romance', 'Science Fiction',
+    'Fantasy', 'Horror', 'Biography', 'History', 'Science', 'Technology'
   ];
-
-  useEffect(() => {
-    fetchBooks();
-  }, []);
-
-  const fetchBooks = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-
-      if (!token) {
-        navigate('/login');
-        return;
-      }
-
-      const response = await axios.get('http://localhost:5000/books?limit=100', {
-        headers: {
-          'x-auth-token': token
-        }
-      });
-
-      if (response.data.status === 'success') {
-        setBooks(response.data.data);
-      } else {
-        setError('Failed to load books');
-      }
-    } catch (err) {
-      console.error('Error fetching books:', err);
-      setError('Error loading books');
-      if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-        localStorage.removeItem('token');
-        navigate('/login');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteBook = async (bookId) => {
-    if (window.confirm('Are you sure you want to delete this book?')) {
-      try {
-        const token = localStorage.getItem('token');
-
-        const response = await axios.delete(
-          `http://localhost:5000/books/${bookId}`,
-          {
-            headers: {
-              'x-auth-token': token
-            }
-          }
-        );
-
-        if (response.data.status === 'success') {
-          // Remove book from list
-          setBooks(books.filter(book => book._id !== bookId));
-        } else {
-          setError('Failed to delete book');
-        }
-      } catch (err) {
-        console.error('Error deleting book:', err);
-        setError('Error deleting book');
-      }
-    }
-  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
   };
+
+  const handleDeleteBook = async (bookId) => {
+    if (!window.confirm('Are you sure you want to delete this book?')) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:5000/books/${bookId}`, {
+        headers: { 'x-auth-token': token }
+      });
+      setBooks(books.filter(book => book._id !== bookId));
+    } catch (err) {
+      console.error('Error deleting book:', err);
+      setError('Failed to delete book');
+    }
+  };
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+
+        const response = await axios.get('http://localhost:5000/books?limit=100', {
+          headers: { 'x-auth-token': token }
+        });
+
+        if (response.data.status === 'success') {
+          setBooks(response.data.data);
+        } else {
+          setError('Failed to load books');
+        }
+      } catch (err) {
+        console.error('Error fetching books:', err);
+        setError('Error loading books');
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          localStorage.removeItem('token');
+          navigate('/login');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooks();
+  }, [navigate]);
 
   const filteredBooks = books.filter(book => {
     const matchesSearch = book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -107,35 +81,35 @@ const AdminBrowseBooks = () => {
 
   return (
     <div className="admin-dashboard-container">
-      <div className="admin-sidebar">
-        <div className="admin-logo">Admin Dashboard</div>
-        <nav className="admin-nav">
+      <div className="admindash-sidebar">
+        <div className="admindash-logo">Admin Dashboard</div>
+        <nav className="admindash-nav">
           <button
-            className="nav-item"
+            className="admindash-nav-item"
             onClick={() => navigate('/admin')}
           >
             Dashboard
           </button>
           <button
-            className="nav-item"
+            className="admindash-nav-item"
             onClick={() => navigate('/admin/users')}
           >
             User Management
           </button>
           <button
-            className="nav-item active"
+            className="admindash-nav-item active"
             onClick={() => navigate('/admin/books')}
           >
             Book Management
           </button>
           <button
-            className="nav-item"
+            className="admindash-nav-item"
             onClick={() => navigate('/admin/complaints')}
           >
             Complaints
           </button>
           <button
-            className="nav-item logout"
+            className="admindash-nav-item logout"
             onClick={handleLogout}
           >
             Logout
@@ -143,107 +117,95 @@ const AdminBrowseBooks = () => {
         </nav>
       </div>
 
-      <div className="admin-content">
-        <div className="admin-header">
-          <h1>Browse Books</h1>
-          <button
-            onClick={() => navigate('/admin/books')}
-            className="back-to-management"
-          >
-            Back to Book Management
-          </button>
+      <div className="admindash-content">
+        <div className="admindash-header">
+          <h1>Book Management</h1>
         </div>
 
-        <div className="admin-main">
-          {error && <div className="error-message">{error}</div>}
+        <div className="admindash-main">
+          {error && <div className="admindash-error-message">{error}</div>}
 
-          <div className="browse-controls">
-            <div className="search-box">
-              <FaSearch className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search by title or author..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
-            </div>
-
-            <button
-              className="filter-toggle"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <FaFilter /> Filters
-            </button>
-
-            {showFilters && (
-              <div className="filter-section">
-                <select
-                  value={filterGenre}
-                  onChange={(e) => setFilterGenre(e.target.value)}
-                  className="genre-filter"
-                >
-                  <option value="">All Genres</option>
-                  {genres.map(genre => (
-                    <option key={genre} value={genre}>{genre}</option>
-                  ))}
-                </select>
+          <div className="books-management-controls">
+            <div className="search-filter-container">
+              <div className="search-box">
+                <FaSearch className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Search by title or author..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
-            )}
+
+              <button
+                className="filter-button"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <FaFilter /> Filter
+              </button>
+
+              {showFilters && (
+                <div className="genre-filter">
+                  <select
+                    value={filterGenre}
+                    onChange={(e) => setFilterGenre(e.target.value)}
+                  >
+                    <option value="">All Genres</option>
+                    {genres.map(genre => (
+                      <option key={genre} value={genre}>{genre}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
           </div>
 
           {loading ? (
             <div className="loading">Loading books...</div>
           ) : (
-            <div className="books-grid admin-books-grid">
-              {filteredBooks.length === 0 ? (
-                <div className="no-books">No books found matching your criteria.</div>
-              ) : (
-                filteredBooks.map(book => (
-                  <div key={book._id} className="book-card admin-book-card">
-                    <div className="book-image">
-                      <img
-                        src={book.image || '/default-book-cover.jpg'}
-                        alt={book.title}
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = '/default-book-cover.jpg';
-                        }}
-                      />
+            <div className="books-grid">
+              {filteredBooks.map(book => (
+                <div key={book._id} className="book-card">
+                  <div className="book-cover">
+                    <img
+                      src={book.image || '/default-book-cover.jpg'}
+                      alt={book.title}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/default-book-cover.jpg';
+                      }}
+                    />
+                  </div>
+                  <div className="book-info">
+                    <h3>{book.title}</h3>
+                    <p className="author">{book.author}</p>
+                    <p className="genre">{book.genre}</p>
+                    <div className="book-rating">
+                      {book.rating ? `${book.rating.toFixed(1)} ⭐` : 'No ratings'}
                     </div>
-                    <div className="book-info">
-                      <h3>{book.title}</h3>
-                      <p className="author">by {book.author}</p>
-                      <p className="genre">{book.genre}</p>
-                      <div className="owner-info">
-                        <span>Owner: {book.userId.name}</span>
-                      </div>
-                      <div className="status-badge">
-                        Status: {book.status}
-                      </div>                      <div className="book-actions">
-                        <button
-                          onClick={() => navigate(`/admin/books/${book._id}`)}
-                          className="view-button"
-                        >
-                          <FaEye /> View
-                        </button>
-                        <button
-                          onClick={() => navigate(`/edit-book/${book._id}`)}
-                          className="edit-button"
-                        >
-                          <FaEdit /> Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteBook(book._id)}
-                          className="delete-button"
-                        >
-                          <FaTrash /> Delete
-                        </button>
-                      </div>
+                    <div className="book-actions">
+                      <button
+                        className="view-button"
+                        onClick={() => navigate(`/admin/books/${book._id}`)}
+                      >
+                        View Details
+                      </button>
+                      <button
+                        className="edit-button"
+                        onClick={() => navigate(`/edit-book/${book._id}`)}
+                      >
+                        <FaEdit /> Edit
+                      </button>
+                      <button
+                        className="delete-button"
+                        onClick={() => handleDeleteBook(book._id)}
+                      >
+                        <FaTrash /> Delete
+                      </button>
                     </div>
                   </div>
-                ))
-              )}
+                </div>
+              ))}
             </div>
           )}
         </div>
