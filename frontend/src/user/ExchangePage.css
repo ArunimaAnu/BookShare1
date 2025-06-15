@@ -1,0 +1,473 @@
+.exchanges-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Roboto', Arial, sans-serif;
+}
+
+.exchanges-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+  border: none;
+  color: #5c6bc0;
+  font-size: 14px;
+  cursor: pointer;
+  margin-right: 20px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: rgba(92, 107, 192, 0.1);
+}
+
+.back-button svg {
+  margin-right: 5px;
+}
+
+.exchanges-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.exchanges-controls {
+  margin-bottom: 25px;
+}
+
+.search-filter-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-radius: 30px;
+  padding: 8px 15px;
+  flex: 1;
+  max-width: 500px;
+}
+
+.search-bar svg {
+  color: #757575;
+  margin-right: 10px;
+}
+
+.search-bar input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 14px;
+  color: #333;
+  outline: none;
+}
+
+.filter-controls {
+  display: flex;
+  align-items: center;
+}
+
+.status-filter {
+  padding: 8px 15px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.status-filter:hover, .status-filter:focus {
+  border-color: #5c6bc0;
+}
+
+.exchanges-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.exchange-item {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.exchange-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.exchange-summary {
+  display: flex;
+  padding: 16px;
+  cursor: pointer;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .exchange-summary {
+    flex-direction: column;
+  }
+}
+
+.exchange-book-info {
+  display: flex;
+  flex: 0 0 250px;
+  margin-right: 20px;
+}
+
+@media (max-width: 768px) {
+  .exchange-book-info {
+    margin-right: 0;
+    margin-bottom: 15px;
+  }
+}
+
+.book-image {
+  flex: 0 0 80px;
+  margin-right: 15px;
+}
+
+.book-image img {
+  width: 80px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.book-details h3 {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.book-author {
+  color: #666;
+  font-size: 14px;
+  margin: 0 0 10px 0;
+}
+
+.exchange-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.exchange-status {
+  margin-bottom: 5px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge svg {
+  margin-right: 5px;
+}
+
+.status-pending {
+  background-color: #fff8e1;
+  color: #f57f17;
+}
+
+.status-accepted {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-borrowed {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.status-returned {
+  background-color: #e0f7fa;
+  color: #00838f;
+}
+
+.status-completed {
+  background-color: #e8eaf6;
+  color: #3949ab;
+}
+
+.status-rejected, .status-cancelled {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.exchange-role, .exchange-party, .exchange-method, .caution-deposit, .date-info {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: #555;
+}
+
+.role-label, .party-label, .date-label, .deposit-label {
+  font-weight: 500;
+  margin-right: 6px;
+}
+
+.role-value, .party-name, .date-value, .deposit-value {
+  color: #333;
+}
+
+.party-icon, .date-icon, .method-icon, .deposit-icon {
+  margin-right: 6px;
+  color: #757575;
+  font-size: 12px;
+}
+
+.deposit-status {
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.deposit-status.paid {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.deposit-status.unpaid {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.return-date {
+  color: #f57f17;
+  font-weight: 500;
+}
+
+.view-details {
+  position: absolute;
+  bottom: 12px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  color: #5c6bc0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.view-details svg {
+  margin-right: 5px;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #666;
+}
+
+.spinner {
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top: 3px solid #5c6bc0;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  background-color: #ffebee;
+  border-radius: 4px;
+  padding: 15px;
+  color: #c62828;
+  margin-bottom: 20px;
+}
+
+.no-exchanges {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  border-radius: 8px;
+  border: 1px dashed #ddd;
+  background-color: #fafafa;
+}
+
+.empty-icon {
+  font-size: 40px;
+  color: #bdbdbd;
+  margin-bottom: 10px;
+}
+
+.no-exchanges h3 {
+  margin: 10px 0;
+  color: #333;
+  font-weight: 500;
+}
+
+.no-exchanges p {
+  color: #757575;
+  max-width: 400px;
+  margin: 0 0 20px 0;
+}
+
+.browse-books-btn {
+  background-color: #5c6bc0;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.browse-books-btn:hover {
+  background-color: #3f51b5;
+}
+
+/* Add these new styles to your existing ExchangePage.css */
+
+/* Ratings Summary Styles */
+.exchange-ratings-summary {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #5c6bc0;
+}
+
+.ratings-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.ratings-icon {
+  color: #ffc107;
+  font-size: 12px;
+  margin-right: 6px;
+}
+
+.ratings-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+}
+
+.rating-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.rating-item:last-child {
+  margin-bottom: 0;
+}
+
+.rating-person {
+  font-size: 11px;
+  font-weight: 500;
+  color: #666;
+  min-width: 60px;
+}
+
+.stars-container {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.star {
+  color: #e0e0e0;
+  font-size: 11px;
+  transition: color 0.2s;
+}
+
+.star.filled {
+  color: #ffc107;
+}
+
+.rating-value {
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Update existing exchange-details to accommodate ratings */
+.exchange-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 35px; /* Add space for view-details button */
+}
+
+/* Responsive adjustments for ratings */
+@media (max-width: 768px) {
+  .exchange-ratings-summary {
+    margin-top: 8px;
+    padding: 6px 8px;
+  }
+  
+  .rating-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+  
+  .rating-person {
+    min-width: auto;
+  }
+}
+
+/* Optional: Add a subtle animation when ratings are displayed */
+.exchange-ratings-summary {
+  animation: fadeInRatings 0.3s ease-in-out;
+}
+
+@keyframes fadeInRatings {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

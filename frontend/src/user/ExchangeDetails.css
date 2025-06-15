@@ -1,0 +1,891 @@
+.exchange-details-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Roboto', Arial, sans-serif;
+}
+
+.exchange-details-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+  border: none;
+  color: #5c6bc0;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: rgba(92, 107, 192, 0.1);
+}
+
+.back-button svg {
+  margin-right: 5px;
+}
+
+.exchange-details-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  flex-grow: 1;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status-badge svg {
+  margin-right: 6px;
+}
+
+.status-pending {
+  background-color: #fff8e1;
+  color: #f57f17;
+}
+
+.status-accepted {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-borrowed {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.status-returned {
+  background-color: #e0f7fa;
+  color: #00838f;
+}
+
+.status-completed {
+  background-color: #e8eaf6;
+  color: #3949ab;
+}
+
+.status-rejected, .status-cancelled {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.exchange-details-content {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  padding: 30px;
+}
+
+.exchange-book-section {
+  display: flex;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+  .exchange-book-section {
+    flex-direction: column;
+  }
+  
+  .book-image {
+    margin-bottom: 20px;
+    margin-right: 0;
+  }
+}
+
+.book-image {
+  flex: 0 0 140px;
+  margin-right: 30px;
+}
+
+.book-image img {
+  width: 140px;
+  height: 210px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.book-details {
+  flex: 1;
+}
+
+.book-details h2 {
+  margin: 0 0 5px 0;
+  font-size: 22px;
+  color: #333;
+}
+
+.book-author {
+  color: #666;
+  font-size: 16px;
+  margin: 0 0 15px 0;
+}
+
+.book-return-policy {
+  margin-bottom: 20px;
+}
+
+.return-badge {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.needs-return {
+  background-color: #ffecb3;
+  color: #e65100;
+}
+
+.no-return {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.exchange-people {
+  margin-top: 20px;
+}
+
+.exchange-person {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.person-icon {
+  margin-right: 10px;
+  color: #757575;
+}
+
+.person-label {
+  font-weight: 500;
+  margin-right: 5px;
+  color: #555;
+}
+
+.person-name {
+  color: #333;
+}
+
+.person-you {
+  margin-left: 5px;
+  font-size: 12px;
+  color: #5c6bc0;
+  font-weight: 500;
+}
+
+.exchange-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.exchange-details-card {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.exchange-details-card h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 18px;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.detail-icon {
+  margin-right: 10px;
+  color: #5c6bc0;
+  flex-shrink: 0;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: #555;
+  margin-right: 5px;
+  flex-shrink: 0;
+}
+
+.detail-value {
+  color: #333;
+  display: flex;
+  align-items: center;
+}
+
+.detail-value.highlight {
+  color: #e65100;
+  font-weight: 500;
+}
+
+.deposit-status {
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.deposit-status.paid {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.deposit-status.unpaid {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.exchange-timeline {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.exchange-timeline h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 18px;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 30px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 10px;
+  width: 2px;
+  background-color: #e0e0e0;
+}
+
+.timeline-step {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.timeline-step:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-icon {
+  position: absolute;
+  left: -30px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 10px;
+  z-index: 1;
+}
+
+.timeline-step.completed .timeline-icon {
+  background-color: #4caf50;
+}
+
+.timeline-step.current .timeline-icon {
+  background-color: #2196f3;
+}
+
+.timeline-step.upcoming .timeline-icon {
+  background-color: #9e9e9e;
+}
+
+.timeline-step.rejected .timeline-icon, 
+.timeline-step.cancelled .timeline-icon {
+  background-color: #f44336;
+}
+
+.timeline-content {
+  padding: 0 0 0 15px;
+}
+
+.timeline-label {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 3px;
+}
+
+.timeline-step.completed .timeline-label {
+  color: #2e7d32;
+}
+
+.timeline-step.current .timeline-label {
+  color: #1565c0;
+}
+
+.timeline-step.rejected .timeline-label,
+.timeline-step.cancelled .timeline-label {
+  color: #c62828;
+}
+
+.timeline-date {
+  font-size: 12px;
+  color: #757575;
+}
+
+.exchange-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s;
+}
+
+.action-button svg {
+  margin-right: 6px;
+}
+
+.action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancel-button {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.cancel-button:hover:not(:disabled) {
+  background-color: #ffcdd2;
+}
+
+.confirm-button {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.confirm-button:hover:not(:disabled) {
+  background-color: #c8e6c9;
+}
+
+.payment-button {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.payment-button:hover:not(:disabled) {
+  background-color: #bbdefb;
+}
+
+.rating-button {
+  background-color: #fff8e1;
+  color: #f57f17;
+}
+
+.rating-button:hover:not(:disabled) {
+  background-color: #ffecb3;
+}
+
+.complaint-button {
+  background-color: #ff9800;
+  color: white;
+}
+
+.complaint-button:hover {
+  background-color: #f57c00;
+}
+
+/* Rating Section Styles */
+.exchange-ratings {
+  margin-top: 30px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.exchange-ratings h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 18px;
+  color: #333;
+}
+
+.rating-card {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.rating-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rater-info {
+  display: flex;
+  align-items: center;
+}
+
+.rater-icon {
+  margin-right: 8px;
+  color: #757575;
+}
+
+.rater-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.rating-stars {
+  display: flex;
+  align-items: center;
+}
+
+.stars-container {
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+}
+
+.star {
+  color: #e0e0e0;
+  margin-right: 2px;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.star.filled {
+  color: #ffc107;
+}
+
+.rating-value {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.rating-modal,
+.complaint-modal,
+.confirm-modal {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.close-modal-btn {
+  background: none;
+  border: none;
+  color: #757575;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.close-modal-btn:hover {
+  color: #333;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-body p {
+  margin-top: 0;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* Rating Form Styles */
+.rating-form .form-group {
+  margin-bottom: 20px;
+}
+
+.rating-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.rating-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rating-input .stars-container {
+  margin-right: 0;
+}
+
+.rating-input .star {
+  font-size: 24px;
+  cursor: pointer;
+  margin-right: 4px;
+  transition: color 0.2s;
+}
+
+.rating-input .star:hover,
+.rating-input .star.filled {
+  color: #ffc107;
+}
+
+.rating-text {
+  font-weight: 500;
+  color: #333;
+  font-size: 16px;
+}
+
+/* Complaint Form Styles */
+.complaint-form .form-group {
+  margin-bottom: 15px;
+}
+
+.complaint-form label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #333;
+}
+
+.complaint-form select,
+.complaint-form input,
+.complaint-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.complaint-form select:focus,
+.complaint-form input:focus,
+.complaint-form textarea:focus {
+  outline: none;
+  border-color: #5c6bc0;
+}
+
+.complaint-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.complaint-form select {
+  background-color: white;
+  cursor: pointer;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+}
+
+.cancel-btn {
+  background-color: #f5f5f5;
+  color: #333;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancel-btn:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.submit-btn,
+.confirm-btn {
+  background-color: #5c6bc0;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submit-btn:hover:not(:disabled),
+.confirm-btn:hover:not(:disabled) {
+  background-color: #3f51b5;
+}
+
+.submit-btn:disabled,
+.confirm-btn:disabled,
+.cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Loading and Error States */
+.exchange-details-loading,
+.exchange-details-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.spinner {
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top: 3px solid #5c6bc0;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.exchange-details-error h2 {
+  color: #c62828;
+  margin-bottom: 10px;
+}
+
+.exchange-details-error p {
+  margin-bottom: 20px;
+  color: #555;
+  max-width: 500px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .exchange-details-container {
+    padding: 15px;
+  }
+  
+  .exchange-details-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .exchange-details-header h1 {
+    margin: 10px 0;
+  }
+  
+  .exchange-book-section {
+    flex-direction: column;
+  }
+  
+  .book-image {
+    margin-right: 0;
+    margin-bottom: 20px;
+    align-self: center;
+  }
+  
+  .exchange-details-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .exchange-actions {
+    flex-direction: column;
+  }
+  
+  .action-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .rating-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .rating-stars {
+    margin-top: 0;
+  }
+  
+  .modal-header {
+    padding: 12px 15px;
+  }
+  
+  .modal-body {
+    padding: 15px;
+  }
+  
+  .modal-footer {
+    padding: 12px 15px;
+    flex-direction: column;
+  }
+  
+  .modal-footer .cancel-btn,
+  .modal-footer .submit-btn,
+  .modal-footer .confirm-btn {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  .modal-footer .cancel-btn {
+    order: 2;
+    margin-bottom: 0;
+  }
+  
+  .rating-input {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+/* Add these CSS rules to your ExchangeDetails.css file */
+
+/* Status badge for return requested */
+.status-return-requested {
+  background-color: #ffa500;
+  color: white;
+}
+
+/* Return button styling */
+.return-button {
+  background-color: #5e35b1;
+  color: white;
+}
+
+.return-button:hover {
+  background-color: #4527a0;
+}
+
+/* Additional styles for deposit status */
+.deposit-status.paid {
+  background-color: #4caf50;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  font-size: 0.8rem;
+}
+
+.deposit-status.unpaid {
+  background-color: #f44336;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  font-size: 0.8rem;
+}
+
+/* Enhanced timeline styles for return flow */
+.timeline-step.current .timeline-icon {
+  background-color: #2196f3;
+  color: white;
+}
+
+.timeline-step.upcoming .timeline-icon {
+  background-color: #e0e0e0;
+  color: #757575;
+}
+
+/* Style for return in progress step */
+.timeline-step[data-status="returnRequested"] .timeline-icon {
+  background-color: #ffa500;
+  color: white;
+}
+
+/* Add pulsing animation for active steps */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.timeline-step.current .timeline-icon {
+  animation: pulse 1.5s infinite;
+}

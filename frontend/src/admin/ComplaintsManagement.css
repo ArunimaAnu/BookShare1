@@ -1,0 +1,465 @@
+/* ComplaintsManagement.css */
+
+.complaints-container {
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+/* Filters area */
+.filters-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+}
+
+.search-box {
+  flex: 1;
+  max-width: 400px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e1e5e9;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background-color: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3498db;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.status-filter {
+  min-width: 150px;
+}
+
+.status-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e1e5e9;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background-color: #f8f9fa;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23606060' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1em;
+  cursor: pointer;
+}
+
+.status-select:focus {
+  outline: none;
+  border-color: #3498db;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Complaints list */
+.complaints-list {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+}
+
+.complaints-list h2 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 1.4rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.complaints-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.complaints-table th,
+.complaints-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.complaints-table th {
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: #f8fafc;
+}
+
+.complaints-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.complaints-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.complaints-table td {
+  color: #4a5568;
+  font-size: 0.95rem;
+}
+
+.no-complaints {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #718096;
+  font-style: italic;
+  background-color: #f9fafb;
+  border-radius: 6px;
+  margin-top: 1rem;
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-badge.pending {
+  background-color: #fff8e1;
+  color: #f59e0b;
+}
+
+.status-badge.pending::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #f59e0b;
+  margin-right: 6px;
+}
+
+.status-badge.in.progress,
+.status-badge.in-progress {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+.status-badge.in.progress::before,
+.status-badge.in-progress::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #0284c7;
+  margin-right: 6px;
+}
+
+.status-badge.resolved {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.status-badge.resolved::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #16a34a;
+  margin-right: 6px;
+}
+
+/* Buttons */
+.view-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-button:hover {
+  background-color: #2980b9;
+  transform: translateY(-1px);
+}
+
+.view-button:active {
+  transform: translateY(0);
+}
+
+.view-all-button {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 1rem;
+  background-color: #f8f9fa;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-all-button:hover {
+  background-color: #edf2f7;
+  color: #2d3748;
+}
+
+/* Complaint detail view */
+.complaint-detail {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-top: 1.5rem;
+  overflow: hidden;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+}
+
+.detail-header h2 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: #a0aec0;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  background-color: #edf2f7;
+  color: #4a5568;
+}
+
+.detail-content {
+  padding: 1.5rem;
+}
+
+.detail-row {
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: baseline;
+}
+
+.detail-row strong {
+  min-width: 120px;
+  color: #4a5568;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.detail-row span {
+  color: #2d3748;
+  font-size: 0.95rem;
+}
+
+.detail-row.description {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-row.description strong {
+  margin-bottom: 0.5rem;
+}
+
+.complaint-description {
+  background-color: #f8fafc;
+  padding: 1.25rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  white-space: pre-line;
+  line-height: 1.5;
+  color: #4a5568;
+  font-size: 0.95rem;
+}
+
+.detail-row.admin-response {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-row.admin-response strong {
+  margin-bottom: 0.5rem;
+}
+
+.response-content {
+  background-color: #f0fff4;
+  padding: 1.25rem;
+  border-radius: 6px;
+  border: 1px solid #c6f6d5;
+  white-space: pre-line;
+  line-height: 1.5;
+  color: #2f855a;
+  font-size: 0.95rem;
+}
+
+/* Response form */
+.response-form {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.response-form h3 {
+  color: #2d3748;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.response-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  resize: vertical;
+  min-height: 120px;
+  color: #4a5568;
+  transition: all 0.2s ease;
+}
+
+.response-textarea:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.respond-button {
+  padding: 0.75rem 1.25rem;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.respond-button:hover {
+  background-color: #059669;
+}
+
+.respond-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.mark-button {
+  padding: 0.75rem 1.25rem;
+  background-color: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mark-button:hover {
+  background-color: #d97706;
+}
+
+/* Loading and error states */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  color: #4a5568;
+  font-size: 1rem;
+}
+
+.error-message {
+  background-color: #fee2e2;
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #ef4444;
+  font-size: 0.95rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .filters-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .search-box {
+    max-width: 100%;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+  }
+  
+  .detail-row strong {
+    margin-bottom: 0.5rem;
+  }
+  
+  .complaints-table th:nth-child(3),
+  .complaints-table td:nth-child(3) {
+    display: none;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+}
