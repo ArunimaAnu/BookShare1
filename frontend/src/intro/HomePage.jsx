@@ -78,8 +78,8 @@ const HomePage = () => {
   const features = [
     {
       icon: "📚",
-      title: "List Your Books",
-      description: "Easily catalog books you'd like to exchange with detailed information and condition status."
+      title: "Add Your Books",
+      description: "Easily add books you'd like to exchange with detailed information."
     },
     {
       icon: "🔄",
@@ -88,22 +88,22 @@ const HomePage = () => {
     },
     {
       icon: "📱",
-      title: "QR Code Integration",
-      description: "Scan QR codes to quickly access book details and streamline the exchange process."
+      title: "Browse & Search",
+      description: "Search for books by title, author, genre, or location. Find what you want quickly and easily."
     },
     {
       icon: "📍",
-      title: "Location-Based Discovery",
-      description: "Find books available near you and connect with local book enthusiasts."
+      title: "Wishlist Books",
+      description: "Create a wishlist of books you want to read. Get notified when they become available for exchange."
     },
     {
       icon: "🏛️",
-      title: "Library Integration",
-      description: "Access wider variety of books through our partnerships with major libraries."
+      title: "Community",
+      description: "Join a vibrant community of book lovers. Share , reviews, and connect with fellow readers."
     },
     {
       icon: "⭐",
-      title: "Community Ratings",
+      title: "Ratings & Reviews",
       description: "Build trust through our comprehensive rating and review system."
     }
   ];
@@ -157,7 +157,6 @@ const HomePage = () => {
           <div className="desktop-menu">
             <a href="#features" className="nav-link">Features</a>
             <a href="#how-it-works" className="nav-link">How It Works</a>
-            <a href="#testimonials" className="nav-link">Testimonials</a>
           </div>
 
           <div className="auth-buttons">

@@ -1,8 +1,7 @@
 body {
     color: #333;
   }
-  
-  .login-container {
+    .login-container {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -118,4 +117,26 @@ body {
   
   .register-link a:hover {
     text-decoration: underline;
+  }
+  
+  .home-button-container {
+    margin-top: 20px;
+    text-align: center;
+  }
+  
+  .home-button {
+    background-color: #718096;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .home-button:hover {
+    background-color: #4a5568;
   }

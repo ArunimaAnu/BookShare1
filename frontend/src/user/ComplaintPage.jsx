@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaExclamationTriangle, FaCheckCircle, FaClock, FaSpinner } from 'react-icons/fa';
+import { FaExclamationTriangle, FaCheckCircle, FaClock, FaSpinner, FaArrowLeft } from 'react-icons/fa';
 import './ComplaintPage.css';
 
 const ComplaintPage = () => {
@@ -67,7 +67,9 @@ const ComplaintPage = () => {
       ...prev,
       [name]: value
     }));
-  };  const handleSubmit = async (e) => {
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -78,12 +80,16 @@ const ComplaintPage = () => {
         setError('Please log in to submit a complaint');
         setLoading(false);
         return;
-      }// Validate category
+      }
+
+      // Validate category
       if (!['behavior', 'book_condition', 'no_show', 'payment', 'communication', 'other'].includes(complaintData.category)) {
         setError('Invalid category selected');
         setLoading(false);
         return;
-      }      let complaintPayload = {
+      }
+
+      let complaintPayload = {
         subject: complaintData.subject.trim(),
         description: complaintData.description.trim(),
         category: complaintData.category,
@@ -103,7 +109,9 @@ const ComplaintPage = () => {
           bookId: exchange.bookId._id,
           bookTitle: exchange.bookId.title
         };
-      }      // Add proper error handling for validation
+      }
+
+      // Add proper error handling for validation
       if (!complaintPayload.subject || !complaintPayload.description || !complaintPayload.category) {
         setError('Please fill in all required fields');
         setLoading(false);
@@ -129,7 +137,8 @@ const ComplaintPage = () => {
           description: '',
           category: 'other'
         });
-      }    } catch (err) {
+      }
+    } catch (err) {
       console.error('Error submitting complaint:', err);
       if (err.response?.data?.errors && Array.isArray(err.response.data.errors)) {
         setError(err.response.data.errors.join('\n'));
@@ -142,7 +151,6 @@ const ComplaintPage = () => {
       setLoading(false);
     }
   };
-
   const getStatusIcon = (status) => {
     switch (status) {
       case 'Pending':
@@ -156,8 +164,22 @@ const ComplaintPage = () => {
     }
   };
 
+  const handleBackToDashboard = () => {
+    navigate('/user-dashboard');
+  };
+
   return (
     <div className="complaint-page">
+      <div className="page-navigation">
+        <button 
+          className="back-to-dashboard-btn"
+          onClick={handleBackToDashboard}
+        >
+          <FaArrowLeft className="back-icon" />
+          Back to Dashboard
+        </button>
+      </div>
+
       <div className="complaint-header">
         <h1>{exchangeId ? 'File Exchange Complaint' : 'Complaints Center'}</h1>
         {!exchangeId && (

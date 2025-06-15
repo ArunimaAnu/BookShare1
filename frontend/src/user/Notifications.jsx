@@ -462,7 +462,7 @@ const Notifications = () => {
   return (
     <div className="notifications-container">
       <div className="notifications-header">
-        <button onClick={() => navigate('/user-dashboard')} className="back-button">
+        <button onClick={() => navigate('/user-dashboard')} className="notify-back-button">
           <FaArrowLeft /> Back to Dashboard
         </button>
         <h1>Notifications</h1>
