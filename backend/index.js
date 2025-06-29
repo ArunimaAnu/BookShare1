@@ -2265,23 +2265,467 @@ app.put("/admin/complaints/:id", verifyToken, isAdmin, async (req, res) => {
   }
 });
 
+// Cancel an exchange (can be done by either borrower or owner when in certain states)
+app.put("/exchanges/:id/cancel", verifyToken, async (req, res) => {
+  try {
+    const exchangeId = req.params.id;
 
-// Handle 404 - Route not found
-app.use((req, res) => {
-  res.status(404).json({
-    status: "error",
-    message: "Endpoint not found"
-  });
+    // Find the exchange and populate book information for notifications
+    const exchange = await ExchangeModel.findById(exchangeId)
+      .populate('bookId', 'title status userId')
+      .populate('borrowerId', 'name email')
+      .populate('ownerId', 'name email');
+
+    if (!exchange) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Exchange not found'
+      });
+    }
+
+    // Verify the current user is part of the exchange
+    if (
+      exchange.ownerId._id.toString() !== req.userId &&
+      exchange.borrowerId._id.toString() !== req.userId
+    ) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You are not authorized to cancel this exchange'
+      });
+    }
+
+    // Check if exchange is in a state that can be cancelled
+    const cancellableStates = ['pending', 'accepted'];
+    if (!cancellableStates.includes(exchange.status)) {
+      return res.status(400).json({
+        status: 'error',
+        message: `Exchange cannot be cancelled in "${exchange.status}" state`
+      });
+    }
+
+    // Get the user who is cancelling
+    const isOwner = exchange.ownerId._id.toString() === req.userId;
+    const canceller = isOwner ? exchange.ownerId : exchange.borrowerId;
+    const recipient = isOwner ? exchange.borrowerId : exchange.ownerId;
+
+    // Update exchange status
+    exchange.status = 'cancelled';
+    await exchange.save();
+
+    // Update book status to available
+    const book = await BookModel.findById(exchange.bookId._id);
+    if (book) {
+      book.status = 'available';
+      await book.save();
+    }
+
+    // Create notification for the other party
+    const notification = new NotificationModel({
+      userId: recipient._id,
+      type: 'exchange_cancelled',
+      bookId: exchange.bookId._id,
+      message: `The exchange for "${exchange.bookId.title}" has been cancelled by ${canceller.name}.`,
+      actionLink: `/exchanges/${exchange._id}`
+    });
+
+    await notification.save();
+
+    // Send email to the other party
+    const emailContent = `
+      <h2>Book Exchange Cancelled</h2>
+      <p>Hello ${recipient.name},</p>
+      <p>The exchange for "${exchange.bookId.title}" has been cancelled by ${canceller.name}.</p>
+      <p>You can view the exchange details here: <a href="http://localhost:5173/exchanges/${exchange._id}">Exchange Details</a></p>
+      <p>Thank you for using BookExchange!</p>
+      <br>
+      <p>Best regards,</p>
+      <p>BookExchange Team</p>
+    `;
+
+    await transporter.sendMail({
+      from: '"BookExchange" <bookexchange71@gmail.com>',
+      to: recipient.email,
+      subject: `Exchange Cancelled - ${exchange.bookId.title}`,
+      html: emailContent
+    });
+
+    res.json({
+      status: 'success',
+      message: 'Exchange cancelled successfully',
+      data: exchange
+    });
+  } catch (error) {
+    console.error('Error cancelling exchange:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to cancel exchange',
+      error: error.message
+    });
+  }
 });
 
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({
-    status: "error",
-    message: "Something went wrong on the server",
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
+// Confirm book return (by owner)
+app.put("/exchanges/:id/return", verifyToken, async (req, res) => {
+  try {
+    const exchangeId = req.params.id;
+
+    // Find the exchange and populate related data
+    const exchange = await ExchangeModel.findById(exchangeId)
+      .populate('bookId', 'title status')
+      .populate('borrowerId', 'name email');
+
+    if (!exchange) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Exchange not found'
+      });
+    }
+
+    // Verify the current user is the owner
+    if (exchange.ownerId.toString() !== req.userId) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Only the book owner can confirm the return'
+      });
+    }
+
+    // Verify the exchange is in the returnRequested state
+    if (exchange.status !== 'returnRequested') {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Exchange must be in "returnRequested" state to confirm return'
+      });
+    }
+
+    // Update exchange status and dates
+    exchange.status = 'returned';
+    exchange.actualReturnDate = new Date();
+
+    // If caution deposit was paid, mark it as refunded
+    if (exchange.cautionDeposit.paid) {
+      exchange.cautionDeposit.refunded = true;
+    }
+
+    await exchange.save();
+
+    // Update book status to available
+    const book = await BookModel.findById(exchange.bookId);
+    if (book) {
+      book.status = 'available';
+      await book.save();
+    }
+
+    // Create notification for borrower
+    const notification = new NotificationModel({
+      userId: exchange.borrowerId._id,
+      type: 'book_return',
+      bookId: exchange.bookId._id,
+      message: `The owner has confirmed the return of "${exchange.bookId.title}". ${exchange.cautionDeposit.amount > 0 ? 'Your deposit will be refunded.' : ''}`,
+      actionLink: `/exchanges/${exchange._id}`
+    });
+
+    await notification.save();
+
+    // Send confirmation email to borrower
+    const emailContent = `
+      <h2>Book Return Confirmed</h2>
+      <p>Hello ${exchange.borrowerId.name},</p>
+      <p>The owner has confirmed the return of "${exchange.bookId.title}".</p>
+      ${exchange.cautionDeposit.amount > 0 ? '<p>Your deposit will be refunded to you.</p>' : ''}
+      <p>You can view the exchange details here: <a href="http://localhost:5173/exchanges/${exchange._id}">Exchange Details</a></p>
+      <p>Thank you for using BookExchange!</p>
+      <br>
+      <p>Best regards,</p>
+      <p>BookExchange Team</p>
+    `;
+
+    await transporter.sendMail({
+      from: '"BookExchange" <bookexchange71@gmail.com>',
+      to: exchange.borrowerId.email,
+      subject: `Book Return Confirmed - ${exchange.bookId.title}`,
+      html: emailContent
+    });
+
+    res.json({
+      status: 'success',
+      message: 'Book return confirmed successfully',
+      data: exchange
+    });
+  } catch (error) {
+    console.error('Error confirming book return:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to confirm book return',
+      error: error.message
+    });
+  }
+});
+
+// Submit a complaint
+app.post("/complaints", verifyToken, async (req, res) => {
+  try {
+    if (!req.userId) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'User authentication required'
+      });
+    }
+
+    const { subject, description, category, exchangeId, complaineeId, complaineeName, bookId, bookTitle } = req.body;
+    
+    // Sanitize and validate fields
+    const cleanSubject = subject ? subject.trim() : '';
+    const cleanDescription = description ? description.trim() : '';
+    const cleanCategory = category ? category.toLowerCase().trim() : '';
+
+    const validationErrors = [];
+    if (!cleanSubject) validationErrors.push('Subject is required');
+    if (!cleanDescription) validationErrors.push('Description is required');
+    if (cleanDescription.length < 10) validationErrors.push('Description must be at least 10 characters long');
+    if (!cleanCategory) validationErrors.push('Category is required');
+    if (!['behavior', 'book_condition', 'no_show', 'payment', 'communication', 'other'].includes(cleanCategory)) {
+      validationErrors.push('Invalid category');
+    }
+
+    if (validationErrors.length > 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Validation failed',
+        errors: validationErrors
+      });
+    }
+
+    // Validate exchange if provided
+    if (exchangeId) {
+      const exchange = await ExchangeModel.findById(exchangeId);
+      if (!exchange) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Invalid exchange ID'
+        });
+      }
+    }    // Create new complaint with validated structure
+    const complaintData = {
+      user: req.userId,
+      subject: cleanSubject,
+      description: cleanDescription,
+      status: 'Pending',
+      metadata: {
+        category: cleanCategory
+      }
+    };
+
+    // Add optional metadata fields if they exist
+    if (exchangeId) complaintData.metadata.exchangeId = exchangeId;
+    if (complaineeId) complaintData.metadata.complaineeId = complaineeId;
+    if (complaineeName) complaintData.metadata.complaineeName = complaineeName;
+    if (bookId) complaintData.metadata.bookId = bookId;
+    if (bookTitle) complaintData.metadata.bookTitle = bookTitle;
+
+    const complaint = new ComplaintModel(complaintData);
+
+    await complaint.save();    // Create notification for admin
+    const notification = new NotificationModel({
+      userId: req.userId,
+      type: 'complaint_submitted',
+      message: `New complaint submitted: ${cleanSubject}`,
+      actionLink: `/admin/complaints/${complaint._id}`
+    });
+
+    await notification.save();
+
+    res.json({
+      status: 'success',
+      message: 'Complaint submitted successfully',
+      data: complaint
+    });
+  } catch (error) {
+    console.error('Error submitting complaint:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to submit complaint',
+      error: error.message
+    });
+  }
+});
+
+// Get user's complaints
+app.get("/complaints/user", verifyToken, async (req, res) => {
+  try {
+    const complaints = await ComplaintModel.find({
+      $or: [
+        { user: req.userId }
+      ]
+    })
+    .populate('user', 'name')
+    .populate('metadata.bookId', 'title')
+    .sort({ createdAt: -1 });
+
+    res.json({
+      status: 'success',
+      data: complaints
+    });
+  } catch (error) {
+    console.error('Error fetching complaints:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch complaints',
+      error: error.message
+    });
+  }
+});
+
+// Update complaint status and response (admin only)
+app.put("/admin/complaints/:id", verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { status, adminResponse } = req.body;
+
+    if (!['Pending', 'In Progress', 'Resolved'].includes(status)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid status value'
+      });
+    }
+
+    const complaint = await ComplaintModel.findById(req.params.id);
+    if (!complaint) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Complaint not found'
+      });
+    }
+
+    // Update complaint
+    complaint.status = status;
+    if (adminResponse) {
+      complaint.adminResponse = adminResponse;
+    }
+    await complaint.save();
+
+    // If status is being set to Resolved, create notification for the user
+    if (status === 'Resolved') {
+      const notification = new NotificationModel({
+        userId: complaint.user,
+        type: 'complaint_resolved',
+        message: `Your complaint regarding "${complaint.subject}" has been resolved`,
+        actionLink: `/complaints/${complaint._id}`
+      });
+      await notification.save();
+    }
+
+    res.json({
+      status: 'success',
+      message: 'Complaint updated successfully',
+      data: complaint
+    });
+
+  } catch (error) {
+    console.error('Error updating complaint:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to update complaint',
+      error: error.message
+    });
+  }
+});
+
+// Cancel an exchange (can be done by either borrower or owner when in certain states)
+app.put("/exchanges/:id/cancel", verifyToken, async (req, res) => {
+  try {
+    const exchangeId = req.params.id;
+
+    // Find the exchange and populate book information for notifications
+    const exchange = await ExchangeModel.findById(exchangeId)
+      .populate('bookId', 'title status userId')
+      .populate('borrowerId', 'name email')
+      .populate('ownerId', 'name email');
+
+    if (!exchange) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Exchange not found'
+      });
+    }
+
+    // Verify the current user is part of the exchange
+    if (
+      exchange.ownerId._id.toString() !== req.userId &&
+      exchange.borrowerId._id.toString() !== req.userId
+    ) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You are not authorized to cancel this exchange'
+      });
+    }
+
+    // Check if exchange is in a state that can be cancelled
+    const cancellableStates = ['pending', 'accepted'];
+    if (!cancellableStates.includes(exchange.status)) {
+      return res.status(400).json({
+        status: 'error',
+        message: `Exchange cannot be cancelled in "${exchange.status}" state`
+      });
+    }
+
+    // Get the user who is cancelling
+    const isOwner = exchange.ownerId._id.toString() === req.userId;
+    const canceller = isOwner ? exchange.ownerId : exchange.borrowerId;
+    const recipient = isOwner ? exchange.borrowerId : exchange.ownerId;
+
+    // Update exchange status
+    exchange.status = 'cancelled';
+    await exchange.save();
+
+    // Update book status to available
+    const book = await BookModel.findById(exchange.bookId._id);
+    if (book) {
+      book.status = 'available';
+      await book.save();
+    }
+
+    // Create notification for the other party
+    const notification = new NotificationModel({
+      userId: recipient._id,
+      type: 'exchange_cancelled',
+      bookId: exchange.bookId._id,
+      message: `The exchange for "${exchange.bookId.title}" has been cancelled by ${canceller.name}.`,
+      actionLink: `/exchanges/${exchange._id}`
+    });
+
+    await notification.save();
+
+    // Send email to the other party
+    const emailContent = `
+      <h2>Book Exchange Cancelled</h2>
+      <p>Hello ${recipient.name},</p>
+      <p>The exchange for "${exchange.bookId.title}" has been cancelled by ${canceller.name}.</p>
+      <p>You can view the exchange details here: <a href="http://localhost:5173/exchanges/${exchange._id}">Exchange Details</a></p>
+      <p>Thank you for using BookExchange!</p>
+      <br>
+      <p>Best regards,</p>
+      <p>BookExchange Team</p>
+    `;
+
+    await transporter.sendMail({
+      from: '"BookExchange" <bookexchange71@gmail.com>',
+      to: recipient.email,
+      subject: `Exchange Cancelled - ${exchange.bookId.title}`,
+      html: emailContent
+    });
+
+    res.json({
+      status: 'success',
+      message: 'Exchange cancelled successfully',
+      data: exchange
+    });
+  } catch (error) {
+    console.error('Error cancelling exchange:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to cancel exchange',
+      error: error.message
+    });
+  }
 });
 
 module.exports = app;
