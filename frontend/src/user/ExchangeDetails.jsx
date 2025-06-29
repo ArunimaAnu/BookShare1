@@ -183,18 +183,31 @@ const ExchangeDetails = () => {
   };
 
   const cancelExchange = async () => {
-    const token = localStorage.getItem('token');
+    try {
+      const token = localStorage.getItem('token');
 
-    const response = await axios.put(`http://localhost:5000/exchanges/${id}/cancel`, {}, {
-      headers: {
-        'x-auth-token': token
+      if (!token) {
+        setError('Authentication error. Please login again.');
+        return;
       }
-    });
 
-    if (response.data.status === 'success') {
-      fetchExchangeDetails();
-    } else {
-      setError('Failed to cancel exchange');
+      const response = await axios.put(`http://localhost:5000/exchanges/${id}/cancel`, {}, {
+        headers: {
+          'x-auth-token': token
+        }
+      });
+
+      if (response.data.status === 'success') {
+        console.log('Exchange cancelled successfully');
+        fetchExchangeDetails();
+        // Navigate to exchanges list after successful cancellation
+        navigate('/exchanges');
+      } else {
+        setError('Failed to cancel exchange');
+      }
+    } catch (err) {
+      console.error('Error cancelling exchange:', err);
+      setError(err.response?.data?.message || 'Failed to cancel exchange. Please try again.');
     }
   };
 
@@ -478,7 +491,11 @@ const ExchangeDetails = () => {
   };
 
   const canCancel = () => {
-    return exchange && ['pending', 'accepted'].includes(exchange.status);
+    console.log('Checking canCancel:', exchange?.status, isOwner(), isBorrower());
+    // Only allow cancellation in pending or accepted state, and only by exchange participants
+    return exchange && 
+           ['pending', 'accepted'].includes(exchange.status) && 
+           (isOwner() || isBorrower());
   };
 
   // Updated function to check if the user can confirm handover
@@ -512,8 +529,15 @@ const ExchangeDetails = () => {
       exchange.status === 'returnRequested' &&
       isOwner();
   };
-
   const canPayDeposit = () => {
+    console.log('canPayDeposit check:',
+      exchange?.status,
+      isBorrower(),
+      exchange?.bookId?.needsReturn,
+      exchange?.cautionDeposit?.amount,
+      !exchange?.cautionDeposit?.paid
+    );
+    
     return exchange &&
       exchange.status === 'accepted' &&
       isBorrower() &&
@@ -552,7 +576,10 @@ const ExchangeDetails = () => {
         {canCancel() && (
           <button
             className="action-button cancel-button"
-            onClick={() => showConfirmationModal('cancel', 'Are you sure you want to cancel this exchange?')}
+            onClick={() => {
+              console.log('Cancel button clicked');
+              showConfirmationModal('cancel', 'Are you sure you want to cancel this exchange?');
+            }}
             disabled={actionLoading}
           >
             <FaTimesCircle /> Cancel Exchange
@@ -600,15 +627,13 @@ const ExchangeDetails = () => {
           >
             <FaUndo /> Confirm Return
           </button>
-        )}
-
-        {canPayDeposit() && (
+        )}        {canPayDeposit() && (
           <button
             className="action-button payment-button"
             onClick={() => showConfirmationModal('payDeposit', `Pay deposit of ₹${exchange.cautionDeposit.amount.toFixed(2)}?`)}
             disabled={actionLoading}
           >
-            <FaCreditCard /> Pay Deposit
+            <FaCreditCard /> Pay Caution Deposit (₹{exchange.cautionDeposit.amount.toFixed(2)})
           </button>
         )}
 
@@ -1123,6 +1148,17 @@ const ExchangeDetails = () => {
             onSuccess={payDeposit}
             onCancel={() => setShowPaymentModal(false)}
           />
+        </div>
+      )}
+
+      {/* Caution Deposit Alert - Borrower */}
+      {exchange.bookId.needsReturn && isBorrower() && !exchange.cautionDeposit.paid && exchange.status === 'accepted' && (
+        <div className="caution-deposit-alert">
+          <FaExclamationTriangle className="alert-icon" />
+          <div className="alert-content">
+            <h4>Caution Deposit Required</h4>
+            <p>Please pay the caution deposit of ₹{exchange.cautionDeposit.amount.toFixed(2)} to proceed with the book exchange.</p>
+          </div>
         </div>
       )}
     </div>

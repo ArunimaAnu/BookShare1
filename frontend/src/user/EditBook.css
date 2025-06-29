@@ -21,11 +21,13 @@
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
+ 
 }
 
 .back-button {
   background-color: #374151;
   color: white;
+  
 }
 
 .delete-button {

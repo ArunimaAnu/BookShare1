@@ -9,7 +9,7 @@
   --bg-quaternary: #353535;
   --text-primary: #ffffff;
   --text-secondary: #b3b3b3;
-  --text-muted: #666666;
+  --text-muted: #e8dcdc;
   --border-color: #404040;
   --border-light: #555555;
   --shadow-light: rgba(0, 0, 0, 0.3);
@@ -396,19 +396,19 @@
 .status-badge.unavailable {
   background: linear-gradient(135deg, var(--unavailable-color), #e03131);
   color: white;
-  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+  box-shadow: 0 4px 15px rgba(243, 103, 103, 0.4);
 }
 
 .status-badge.return {
-  background: linear-gradient(135deg, var(--return-color), #fd9243);
+  background: linear-gradient(135deg, var(--return-color), #efb388);
   color: white;
-  box-shadow: 0 4px 15px rgba(253, 126, 20, 0.4);
+  box-shadow: 0 4px 15px rgba(234, 184, 142, 0.4);
 }
 
 .status-badge.no-return {
   background: linear-gradient(135deg, var(--no-return-color), #8367c7);
   color: white;
-  box-shadow: 0 4px 15px rgba(151, 117, 250, 0.4);
+  box-shadow: 0 4px 15px rgba(140, 140, 240, 0.4);
 }
 
 /* Meta Information */
@@ -1052,10 +1052,12 @@
   
   .book-detail-title {
     font-size: 2.2rem;
+    
   }
   
   .book-title {
     font-size: 2rem;
+    
   }
   
   .book-info {
