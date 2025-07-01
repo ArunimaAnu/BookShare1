@@ -35,7 +35,7 @@
   --borrowed-color: #ffd43b;
   --unavailable-color: #ff6b6b;
   --return-color: #fd7e14;
-  --no-return-color: #9775fa;
+  --no-return-color: #f1f1f3;
   
   /* Star Colors */
   --star-filled: #ffd43b;
@@ -406,7 +406,7 @@
 }
 
 .status-badge.no-return {
-  background: linear-gradient(135deg, var(--no-return-color), #8367c7);
+  background: linear-gradient(135deg, var(--no-return-color), #f1eff4);
   color: white;
   box-shadow: 0 4px 15px rgba(140, 140, 240, 0.4);
 }

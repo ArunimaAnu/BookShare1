@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { FaArrowLeft, FaStar, FaEdit, FaHeart, FaExchangeAlt, FaUser, FaMapMarkerAlt, FaCalendarAlt, FaTags, FaEnvelope } from 'react-icons/fa';
+import { FaArrowLeft, FaStar, FaEdit, FaHeart, FaExchangeAlt, FaUser, FaMapMarkerAlt, FaCalendarAlt, FaTags, FaEnvelope, FaBook } from 'react-icons/fa';
 import './BookDetail.css';
 
 const BookDetail = () => {
@@ -369,6 +369,13 @@ const BookDetail = () => {
               <FaCalendarAlt />
               <span>Added: {formatDate(book.createdAt)}</span>
             </div>
+
+            {book.language && (
+              <div className="meta-item">
+                <FaBook />
+                <span>Language: {book.language}</span>
+              </div>
+            )}
           </div>
           
           {book.description && (

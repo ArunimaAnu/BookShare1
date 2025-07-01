@@ -160,6 +160,15 @@ const Notifications = () => {
     }
   };
 
+  // Helper function to extract exchange ID from actionLink
+  const getExchangeIdFromLink = (actionLink) => {
+    if (!actionLink) return null;
+    
+    // Assuming actionLink format is '/exchanges/{exchangeId}'
+    const matches = actionLink.match(/\/exchanges\/([a-f\d]+)/i);
+    return matches && matches[1] ? matches[1] : null;
+  };
+
   // API calls
   const fetchNotifications = async () => {
     setLoading(true);
@@ -177,9 +186,17 @@ const Notifications = () => {
       });
       
       if (response.data.status === 'success') {
-        setNotifications(response.data.data);
-        setFilteredNotifications(response.data.data);
-        setUnreadCount(response.data.data.filter(notif => !notif.isRead).length);
+        // Process notifications to ensure they have exchangeId extracted from actionLink
+        const processedNotifications = response.data.data.map(notification => {
+          return {
+            ...notification,
+            exchangeId: getExchangeIdFromLink(notification.actionLink)
+          };
+        });
+        
+        setNotifications(processedNotifications);
+        setFilteredNotifications(processedNotifications);
+        setUnreadCount(processedNotifications.filter(notif => !notif.isRead).length);
       } else {
         setError('Failed to load notifications');
       }
@@ -340,11 +357,28 @@ const Notifications = () => {
   };
 
   const openExchangeModal = async (notification) => {
+    if (!notification || !notification.bookId) {
+      console.error('Invalid notification data:', notification);
+      return;
+    }
+    
+    // Verify that we have an exchange ID
+    if (!notification.exchangeId) {
+      console.error('Notification missing exchangeId:', notification);
+      setError('Exchange information is missing');
+      return;
+    }
+    
     setCurrentNotification(notification);
     
     try {
       // Fetch book details to get needsReturn status
       const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
       const response = await axios.get(`http://localhost:5000/books/${notification.bookId}`, {
         headers: { 'x-auth-token': token }
       });
@@ -361,17 +395,23 @@ const Notifications = () => {
             paid: false
           }
         }));
+        
+        setShowExchangeModal(true);
+      } else {
+        console.error('Failed to fetch book details:', response.data);
       }
     } catch (err) {
       console.error('Error fetching book details:', err);
     }
-    
-    setShowExchangeModal(true);
   };  const acceptRequest = async (e) => {
     e.preventDefault(); // Prevent default form submission
     
     try {
-      if (!currentNotification) return;
+      if (!currentNotification || !currentNotification.bookId) {
+        console.error('Missing notification or book ID:', currentNotification);
+        setError('Invalid request: Missing book information');
+        return;
+      }
       
       // Validate required fields
       if (!exchangeDetails.exchangeMethod) {
@@ -406,8 +446,18 @@ const Notifications = () => {
         }
       };
 
-      const response = await axios.post(`http://localhost:5000/books/${currentNotification.bookId}/accept-request`, {
-        notificationId: currentNotification._id,
+      // Find the exchange ID from the notification
+      // Since the backend expects us to update the exchange status
+      const exchangeId = currentNotification.exchangeId;
+      
+      if (!exchangeId) {
+        setError('Exchange information is missing');
+        return;
+      }
+
+      // Use the correct endpoint to respond to the exchange request
+      const response = await axios.put(`http://localhost:5000/exchanges/${exchangeId}/respond`, {
+        status: 'accepted',
         exchangeDetails: modifiedExchangeDetails
       }, {
         headers: { 'x-auth-token': token }
@@ -427,13 +477,14 @@ const Notifications = () => {
           // Otherwise refresh notifications
           fetchNotifications();
         }
-      }    } catch (err) {
+      }
+    } catch (err) {
       console.error('Error accepting request:', err);
       setError(err.response?.data?.message || 'Failed to accept request. Please try again.');
     }
   };
 
-  const rejectRequest = async (notificationId, bookId) => {
+  const rejectRequest = async (notificationId, bookId, exchangeId) => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -441,8 +492,15 @@ const Notifications = () => {
         return;
       }
       
-      const response = await axios.post(`http://localhost:5000/books/${bookId}/reject-request`, {
-        notificationId
+      if (!exchangeId) {
+        console.error('Missing exchange ID for notification:', notificationId);
+        setError('Exchange information is missing');
+        return;
+      }
+      
+      // Use the correct endpoint to respond to the exchange request
+      const response = await axios.put(`http://localhost:5000/exchanges/${exchangeId}/respond`, {
+        status: 'rejected'
       }, {
         headers: { 'x-auth-token': token }
       });
@@ -455,6 +513,7 @@ const Notifications = () => {
       }
     } catch (err) {
       console.error('Error rejecting request:', err);
+      setError(err.response?.data?.message || 'Failed to reject request. Please try again.');
     }
   };
 
@@ -603,7 +662,7 @@ const Notifications = () => {
                         className="reject-btn" 
                         onClick={(e) => {
                           e.stopPropagation();
-                          rejectRequest(notification._id, notification.bookId);
+                          rejectRequest(notification._id, notification.bookId, notification.exchangeId);
                         }}
                         title="Reject request"
                       >

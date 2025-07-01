@@ -14,6 +14,7 @@ const AddBook = () => {
     rating: 0,
     location: '',
     area: '',
+    language: 'English',
     needsReturn: false
   });
   
@@ -232,6 +233,18 @@ const AddBook = () => {
                   value={formData.area}
                   onChange={handleChange}
                   placeholder="Neighborhood or specific area"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="language">Language</label>
+                <input
+                  type="text"
+                  id="language"
+                  name="language"
+                  value={formData.language}
+                  onChange={handleChange}
+                  placeholder="Book language"
                 />
               </div>
               

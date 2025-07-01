@@ -380,6 +380,17 @@
   margin-top: auto;
 }
 
+.book-language {
+  color: #a0aec0;
+  font-size: 0.75rem;
+  margin: 4px 0;
+}
+
+.language-label {
+  font-weight: 500;
+  color: #cbd5e0;
+}
+
 /* Browse Books Grid - Dark Theme */
 .browse-books-grid {
   display: grid;
