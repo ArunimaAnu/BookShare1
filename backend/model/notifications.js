@@ -9,7 +9,7 @@ const notificationSchema = new mongoose.Schema({
         type: String,
         enum: [
             'wishlist_match', 'borrow_request', 'return_reminder', 'deposit_paid',
-            'book_return_request', 'book_return', 'new_complaint', 'review',
+            'book_return_request','exchange_cancelled', 'book_return', 'new_complaint', 'review',
             'complaint_submitted', 'complaint_in_progress', 'complaint_response', 'complaint_resolved'
         ],
         required: true

@@ -100,6 +100,11 @@ const bookSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    language: {
+        type: String,
+        trim: true,
+        default: 'English'
+    },
     status: {
         type: String,
         enum: ['available', 'borrowed','reserved'],

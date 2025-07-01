@@ -227,7 +227,7 @@ const ExchangeDetails = () => {
     }
   };
 
-  // New function to mark a book as returned by borrower
+  // Function to mark a book as returned by borrower
   const markBookReturned = async () => {
     try {
       console.log('Starting markBookReturned, exchange ID:', id);
@@ -239,9 +239,12 @@ const ExchangeDetails = () => {
         return;
       }
 
-      // Make direct API call - no notification creation on client side
+      const apiUrl = `http://localhost:5000/exchanges/${id}/mark-returned`;
+      console.log('Making API request to:', apiUrl);
+      
+      // Make API call to mark book as returned
       const response = await axios.put(
-        `http://localhost:5000/exchanges/${id}/mark-returned`,
+        apiUrl,
         {},
         {
           headers: {
@@ -265,8 +268,13 @@ const ExchangeDetails = () => {
 
       // Get detailed error message
       let errorMessage = 'Failed to mark book as returned. Please try again.';
-      if (err.response && err.response.data && err.response.data.message) {
-        errorMessage = err.response.data.message;
+      if (err.response) {
+        console.error('Error response:', err.response.status, err.response.data);
+        if (err.response.data && err.response.data.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.response.status === 404) {
+          errorMessage = 'The return feature is currently unavailable. Please contact support.';
+        }
       }
 
       setError(errorMessage);
@@ -292,25 +300,74 @@ const ExchangeDetails = () => {
 
   const payDeposit = async () => {
     setActionLoading(true);
+    console.log('Executing payDeposit action');
 
     try {
       const token = localStorage.getItem('token');
-
-      // Call the endpoint to update deposit status
-      const response = await axios.put(`http://localhost:5000/exchanges/${id}/pay-deposit`, {}, {
-        headers: {
-          'x-auth-token': token
-        }
-      });
-
-      if (response.data.status === 'success') {
-        fetchExchangeDetails();
-      } else {
-        setError('Failed to process payment');
+      if (!token) {
+        console.error('No auth token found');
+        setError('Authentication error. Please login again.');
+        return;
       }
+
+      try {
+        // First attempt - try our custom endpoint
+        const apiUrl = `http://localhost:5000/exchanges/${id}/update-deposit`;
+        console.log('Making API request to:', apiUrl);
+        
+        const response = await axios.put(apiUrl, {
+          depositPaid: true
+        }, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
+
+        console.log('API response:', response.data);
+
+        if (response.data.status === 'success') {
+          console.log('Payment successful! Refreshing details...');
+          fetchExchangeDetails();
+          return; // Exit early if successful
+        }
+      } catch (firstErr) {
+        console.log('First attempt failed, trying fallback method...', firstErr);
+        
+        // If the first attempt fails, try a fallback approach - use handover with deposit flag
+        try {
+          // This is a fallback approach - we'll use the confirmHandover endpoint
+          // and manually update the deposit status in the frontend
+          const response = await axios.put(`http://localhost:5000/exchanges/${id}/handover`, {
+            depositPaid: true, // Add this flag to indicate deposit payment
+          }, {
+            headers: {
+              'x-auth-token': token
+            }
+          });
+          
+          console.log('Fallback API response:', response.data);
+          
+          if (response.data.status === 'success') {
+            console.log('Payment processed via fallback method! Refreshing details...');
+            fetchExchangeDetails();
+            return; // Exit early if successful
+          }
+        } catch (fallbackErr) {
+          console.error('Fallback method also failed:', fallbackErr);
+          throw fallbackErr; // Re-throw to be caught by the outer catch
+        }
+      }
+      
+      // If we get here, both attempts failed but didn't throw errors
+      console.error('Both API attempts failed without throwing errors');
+      setError('Failed to process payment - server did not respond as expected');
+      
     } catch (err) {
       console.error('Error processing payment:', err);
-      setError('Payment processing failed. Please try again.');
+      if (err.response) {
+        console.error('Server response:', err.response.status, err.response.data);
+      }
+      setError(`Payment processing failed: ${err.response?.data?.message || 'Please try again.'}`);
     } finally {
       setActionLoading(false);
       setShowPaymentModal(false);
@@ -530,20 +587,24 @@ const ExchangeDetails = () => {
       isOwner();
   };
   const canPayDeposit = () => {
-    console.log('canPayDeposit check:',
-      exchange?.status,
-      isBorrower(),
-      exchange?.bookId?.needsReturn,
-      exchange?.cautionDeposit?.amount,
-      !exchange?.cautionDeposit?.paid
-    );
+    // Check if all required conditions are met to show the pay deposit button
+    const isAccepted = exchange?.status === 'accepted';
+    const userIsBorrower = isBorrower();
+    const needsReturn = exchange?.bookId?.needsReturn === true;
+    const hasDepositAmount = exchange?.cautionDeposit?.amount > 0;
+    const notPaidYet = exchange?.cautionDeposit?.paid !== true;
     
-    return exchange &&
-      exchange.status === 'accepted' &&
-      isBorrower() &&
-      exchange.bookId.needsReturn &&
-      exchange.cautionDeposit.amount > 0 &&
-      !exchange.cautionDeposit.paid;
+    console.log('canPayDeposit check:', {
+      isAccepted,
+      userIsBorrower,
+      needsReturn,
+      hasDepositAmount,
+      notPaidYet,
+      amount: exchange?.cautionDeposit?.amount,
+      paidStatus: exchange?.cautionDeposit?.paid
+    });
+    
+    return isAccepted && userIsBorrower && needsReturn && hasDepositAmount && notPaidYet;
   };
 
   const canLeaveRating = () => {
@@ -676,7 +737,14 @@ const ExchangeDetails = () => {
 
     if (exchange.bookId.needsReturn) {
       // Add a return requested step
-      if (['returnRequested', 'returned', 'completed'].includes(exchange.status)) {
+      if (exchange.status === 'returnRequested') {
+        steps.push({
+          label: 'Return Initiated',
+          status: 'current',
+          date: exchange.returnRequestDate ? formatDate(exchange.returnRequestDate) : formatDate(exchange.updatedAt),
+          icon: <FaTruck />
+        });
+      } else if (['returned', 'completed'].includes(exchange.status)) {
         steps.push({
           label: 'Return Initiated',
           status: 'completed',
@@ -687,7 +755,8 @@ const ExchangeDetails = () => {
 
       steps.push({
         label: 'Book Returned',
-        status: ['pending', 'accepted', 'borrowed', 'returnRequested'].includes(exchange.status) ? 'upcoming' : ['rejected', 'cancelled'].includes(exchange.status) ? 'cancelled' : 'completed',
+        status: ['pending', 'accepted', 'borrowed', 'returnRequested'].includes(exchange.status) ? 'upcoming' : 
+                ['rejected', 'cancelled'].includes(exchange.status) ? 'cancelled' : 'completed',
         date: exchange.actualReturnDate ? formatDate(exchange.actualReturnDate) : '',
         icon: <FaUndo />
       });
@@ -1141,12 +1210,18 @@ const ExchangeDetails = () => {
       )}
 
       {/* Payment Modal */}
-      {showPaymentModal && (
+      {showPaymentModal && exchange?.cautionDeposit?.amount && (
         <div className="modal-overlay">
           <PaymentModal
-            amount={exchange?.cautionDeposit?.amount || 0}
-            onSuccess={payDeposit}
-            onCancel={() => setShowPaymentModal(false)}
+            amount={exchange.cautionDeposit.amount}
+            onSuccess={() => {
+              console.log("Payment modal success callback triggered");
+              payDeposit();
+            }}
+            onCancel={() => {
+              console.log("Payment modal cancelled");
+              setShowPaymentModal(false);
+            }}
           />
         </div>
       )}

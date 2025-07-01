@@ -55,6 +55,43 @@ const UserDashboard = () => {
   const [exchanges, setExchanges] = useState([]);
   const [loadingExchanges, setLoadingExchanges] = useState(true);
 
+  // Handle delete book function - accessible throughout the component
+  const handleDeleteBook = async (bookId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+      
+      // Call the delete book API endpoint
+      const response = await axios.delete(`http://localhost:5000/books/${bookId}`, {
+        headers: {
+          'x-auth-token': token
+        }
+      });
+      
+      if (response.data.status === 'success') {
+        // Remove the deleted book from the state
+        setMyBooks(prevBooks => prevBooks.filter(book => book._id !== bookId));
+        // Show success message (optional)
+        alert('Book deleted successfully');
+      } else {
+        console.error('Failed to delete book:', response.data.message);
+        alert(response.data.message || 'Failed to delete book');
+      }
+    } catch (err) {
+      console.error('Error deleting book:', err);
+      
+      // Handle specific error cases
+      if (err.response && err.response.data) {
+        alert(err.response.data.message || 'Error deleting book');
+      } else {
+        alert('Error deleting book. Please try again.');
+      }
+    }
+  };
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -149,43 +186,6 @@ const fetchMyBooks = async () => {
     }
   } finally {
     setLoadingMyBooks(false);
-  }
-};
-
-// Add this function to your UserDashboard component
-const handleDeleteBook = async (bookId) => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-    
-    // Call the delete book API endpoint
-    const response = await axios.delete(`http://localhost:5000/books/${bookId}`, {
-      headers: {
-        'x-auth-token': token
-      }
-    });
-    
-    if (response.data.status === 'success') {
-      // Remove the deleted book from the state
-      setMyBooks(prevBooks => prevBooks.filter(book => book._id !== bookId));
-      // Show success message (optional)
-      alert('Book deleted successfully');
-    } else {
-      console.error('Failed to delete book:', response.data.message);
-      alert(response.data.message || 'Failed to delete book');
-    }
-  } catch (err) {
-    console.error('Error deleting book:', err);
-    
-    // Handle specific error cases
-    if (err.response && err.response.data) {
-      alert(err.response.data.message || 'Error deleting book');
-    } else {
-      alert('Error deleting book. Please try again.');
-    }
   }
 };
 

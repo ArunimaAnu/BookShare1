@@ -16,6 +16,7 @@ const BrowseBooks = () => {
   const [searchAuthor, setSearchAuthor] = useState('');
   const [searchLocation, setSearchLocation] = useState('');
   const [searchGenre, setSearchGenre] = useState('');
+  const [searchLanguage, setSearchLanguage] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   
   // Pagination state
@@ -84,6 +85,7 @@ const BrowseBooks = () => {
       if (searchAuthor) params.append('author', searchAuthor);
       if (searchLocation) params.append('location', searchLocation);
       if (searchGenre) params.append('genre', searchGenre);
+      if (searchLanguage) params.append('language', searchLanguage);
       
       const response = await axios.get(`http://localhost:5000/books?${params}`, {
         headers: {
@@ -117,6 +119,7 @@ const BrowseBooks = () => {
     setSearchAuthor('');
     setSearchLocation('');
     setSearchGenre('');
+    setSearchLanguage('');
     setPage(1);
     fetchBooks({});
   };
@@ -169,6 +172,11 @@ const BrowseBooks = () => {
           </span>
         </div>
         <div className="browse-book-location">{book.location}{book.area ? `, ${book.area}` : ''}</div>
+        {book.language && (
+          <div className="browse-book-language">
+            <span className="language-label">Language:</span> {book.language}
+          </div>
+        )}
         <div className="browse-book-status">
           <span className={`browse-status-badge ${book.needsReturn ? 'return' : 'gift'}`}>
             {book.needsReturn ? 'Needs Return' : 'Gift'}
@@ -289,6 +297,16 @@ const BrowseBooks = () => {
                 placeholder="Search by location..."
                 value={searchLocation}
                 onChange={(e) => setSearchLocation(e.target.value)}
+              />
+            </div>
+            
+            <div className="filter-group">
+              <label>Language</label>
+              <input
+                type="text"
+                placeholder="Search by language..."
+                value={searchLanguage}
+                onChange={(e) => setSearchLanguage(e.target.value)}
               />
             </div>
             

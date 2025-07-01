@@ -475,6 +475,7 @@ app.get("/books", async (req, res) => {
       author,
       location,
       genre, // Added genre parameter
+      language, // Added language parameter
       status = 'available'
     } = req.query;
 
@@ -496,6 +497,11 @@ app.get("/books", async (req, res) => {
     // Add genre filter if provided
     if (genre) {
       query.genre = { $regex: genre, $options: 'i' };
+    }
+
+    // Add language filter if provided
+    if (language) {
+      query.language = { $regex: language, $options: 'i' };
     }
 
     // Count total matching documents for pagination
@@ -938,7 +944,7 @@ app.post("/books", verifyToken, (req, res, next) => {
   });
 }, async (req, res) => {
   try {
-    const { title, author, description, genre, rating, location, area, needsReturn } = req.body;
+    const { title, author, description, genre, rating, location, area, needsReturn, language } = req.body;
 
     // Validate required fields
     if (!title || !author || !location || !genre) {
@@ -958,6 +964,7 @@ app.post("/books", verifyToken, (req, res, next) => {
       location,
       area: area || "",
       needsReturn: needsReturn === "true",
+      language: language || "English",
       userId: req.userId
     };
 
@@ -1043,7 +1050,7 @@ app.put("/books/:id", verifyToken, (req, res, next) => {
 }, async (req, res) => {
   try {
     const bookId = req.params.id;
-    const { title, author, description, genre, rating, location, area, needsReturn } = req.body;
+    const { title, author, description, genre, rating, location, area, needsReturn, language } = req.body;
 
     // Find book first to check ownership
     const book = await BookModel.findById(bookId);
@@ -1081,6 +1088,7 @@ app.put("/books/:id", verifyToken, (req, res, next) => {
       location,
       area: area || "",
       needsReturn: needsReturn === "true",
+      language: language || "English",
       updatedAt: Date.now()
     };
 
@@ -2364,15 +2372,16 @@ app.put("/exchanges/:id/cancel", verifyToken, async (req, res) => {
   }
 });
 
-// Confirm book return (by owner)
-app.put("/exchanges/:id/return", verifyToken, async (req, res) => {
+// Update the caution deposit status (e.g., mark as paid)
+app.put("/exchanges/:id/update-deposit", verifyToken, async (req, res) => {
+  console.log('Update deposit endpoint hit:', req.params.id);
   try {
     const exchangeId = req.params.id;
+    const { depositPaid } = req.body;
+    console.log('Deposit update request:', { exchangeId, depositPaid });
 
-    // Find the exchange and populate related data
-    const exchange = await ExchangeModel.findById(exchangeId)
-      .populate('bookId', 'title status')
-      .populate('borrowerId', 'name email');
+    // Find the exchange
+    const exchange = await ExchangeModel.findById(exchangeId);
 
     if (!exchange) {
       return res.status(404).json({
@@ -2381,263 +2390,87 @@ app.put("/exchanges/:id/return", verifyToken, async (req, res) => {
       });
     }
 
-    // Verify the current user is the owner
-    if (exchange.ownerId.toString() !== req.userId) {
+    // Ensure the user is the borrower
+    if (exchange.borrowerId.toString() !== req.userId) {
       return res.status(403).json({
         status: 'error',
-        message: 'Only the book owner can confirm the return'
+        message: 'Only the borrower can update the deposit status'
       });
     }
 
-    // Verify the exchange is in the returnRequested state
-    if (exchange.status !== 'returnRequested') {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Exchange must be in "returnRequested" state to confirm return'
-      });
-    }
-
-    // Update exchange status and dates
-    exchange.status = 'returned';
-    exchange.actualReturnDate = new Date();
-
-    // If caution deposit was paid, mark it as refunded
-    if (exchange.cautionDeposit.paid) {
-      exchange.cautionDeposit.refunded = true;
-    }
-
+    // Update the caution deposit status
+    exchange.cautionDeposit.paid = depositPaid;
     await exchange.save();
 
-    // Update book status to available
+    // Get book details for email
     const book = await BookModel.findById(exchange.bookId);
-    if (book) {
-      book.status = 'available';
-      await book.save();
-    }
+    const owner = await UserModel.findById(exchange.ownerId);
+    const borrower = await UserModel.findById(exchange.borrowerId);
 
-    // Create notification for borrower
-    const notification = new NotificationModel({
-      userId: exchange.borrowerId._id,
-      type: 'book_return',
-      bookId: exchange.bookId._id,
-      message: `The owner has confirmed the return of "${exchange.bookId.title}". ${exchange.cautionDeposit.amount > 0 ? 'Your deposit will be refunded.' : ''}`,
-      actionLink: `/exchanges/${exchange._id}`
-    });
-
-    await notification.save();
-
-    // Send confirmation email to borrower
-    const emailContent = `
-      <h2>Book Return Confirmed</h2>
-      <p>Hello ${exchange.borrowerId.name},</p>
-      <p>The owner has confirmed the return of "${exchange.bookId.title}".</p>
-      ${exchange.cautionDeposit.amount > 0 ? '<p>Your deposit will be refunded to you.</p>' : ''}
-      <p>You can view the exchange details here: <a href="http://localhost:5173/exchanges/${exchange._id}">Exchange Details</a></p>
-      <p>Thank you for using BookExchange!</p>
-      <br>
-      <p>Best regards,</p>
-      <p>BookExchange Team</p>
-    `;
-
-    await transporter.sendMail({
-      from: '"BookExchange" <bookexchange71@gmail.com>',
-      to: exchange.borrowerId.email,
-      subject: `Book Return Confirmed - ${exchange.bookId.title}`,
-      html: emailContent
-    });
-
-    res.json({
-      status: 'success',
-      message: 'Book return confirmed successfully',
-      data: exchange
-    });
-  } catch (error) {
-    console.error('Error confirming book return:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to confirm book return',
-      error: error.message
-    });
-  }
-});
-
-// Submit a complaint
-app.post("/complaints", verifyToken, async (req, res) => {
-  try {
-    if (!req.userId) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'User authentication required'
-      });
-    }
-
-    const { subject, description, category, exchangeId, complaineeId, complaineeName, bookId, bookTitle } = req.body;
-    
-    // Sanitize and validate fields
-    const cleanSubject = subject ? subject.trim() : '';
-    const cleanDescription = description ? description.trim() : '';
-    const cleanCategory = category ? category.toLowerCase().trim() : '';
-
-    const validationErrors = [];
-    if (!cleanSubject) validationErrors.push('Subject is required');
-    if (!cleanDescription) validationErrors.push('Description is required');
-    if (cleanDescription.length < 10) validationErrors.push('Description must be at least 10 characters long');
-    if (!cleanCategory) validationErrors.push('Category is required');
-    if (!['behavior', 'book_condition', 'no_show', 'payment', 'communication', 'other'].includes(cleanCategory)) {
-      validationErrors.push('Invalid category');
-    }
-
-    if (validationErrors.length > 0) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Validation failed',
-        errors: validationErrors
-      });
-    }
-
-    // Validate exchange if provided
-    if (exchangeId) {
-      const exchange = await ExchangeModel.findById(exchangeId);
-      if (!exchange) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Invalid exchange ID'
+    // Send email notifications about the deposit payment
+    if (depositPaid) {
+      try {
+        // Send payment confirmation emails
+        await sendPaymentConfirmationEmail({
+          recipientEmail: owner.email,
+          recipientName: owner.name,
+          isOwner: true,
+          bookTitle: book.title,
+          amount: exchange.cautionDeposit.amount,
+          paymentDate: new Date().toLocaleDateString(),
+          exchangeId: exchange._id
         });
+
+        await sendPaymentConfirmationEmail({
+          recipientEmail: borrower.email,
+          recipientName: borrower.name,
+          isOwner: false,
+          bookTitle: book.title,
+          amount: exchange.cautionDeposit.amount,
+          paymentDate: new Date().toLocaleDateString(),
+          exchangeId: exchange._id
+        });
+      } catch (emailError) {
+        console.error('Error sending payment emails:', emailError);
+        // Continue execution even if email sending fails
       }
-    }    // Create new complaint with validated structure
-    const complaintData = {
-      user: req.userId,
-      subject: cleanSubject,
-      description: cleanDescription,
-      status: 'Pending',
-      metadata: {
-        category: cleanCategory
+    }
+
+    res.json({
+      status: 'success',
+      message: 'Deposit status updated successfully',
+      data: {
+        depositPaid
       }
-    };
-
-    // Add optional metadata fields if they exist
-    if (exchangeId) complaintData.metadata.exchangeId = exchangeId;
-    if (complaineeId) complaintData.metadata.complaineeId = complaineeId;
-    if (complaineeName) complaintData.metadata.complaineeName = complaineeName;
-    if (bookId) complaintData.metadata.bookId = bookId;
-    if (bookTitle) complaintData.metadata.bookTitle = bookTitle;
-
-    const complaint = new ComplaintModel(complaintData);
-
-    await complaint.save();    // Create notification for admin
-    const notification = new NotificationModel({
-      userId: req.userId,
-      type: 'complaint_submitted',
-      message: `New complaint submitted: ${cleanSubject}`,
-      actionLink: `/admin/complaints/${complaint._id}`
-    });
-
-    await notification.save();
-
-    res.json({
-      status: 'success',
-      message: 'Complaint submitted successfully',
-      data: complaint
     });
   } catch (error) {
-    console.error('Error submitting complaint:', error);
+    console.error('Error updating deposit status:', error);
     res.status(500).json({
       status: 'error',
-      message: 'Failed to submit complaint',
+      message: 'Failed to update deposit status',
       error: error.message
     });
   }
 });
 
-// Get user's complaints
-app.get("/complaints/user", verifyToken, async (req, res) => {
-  try {
-    const complaints = await ComplaintModel.find({
-      $or: [
-        { user: req.userId }
-      ]
-    })
-    .populate('user', 'name')
-    .populate('metadata.bookId', 'title')
-    .sort({ createdAt: -1 });
-
-    res.json({
-      status: 'success',
-      data: complaints
-    });
-  } catch (error) {
-    console.error('Error fetching complaints:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to fetch complaints',
-      error: error.message
-    });
-  }
+// Simple test endpoint to check if routing is working
+app.get("/exchanges/test", (req, res) => {
+  console.log('Test endpoint hit');
+  res.json({
+    status: 'success',
+    message: 'API is working correctly'
+  });
 });
 
-// Update complaint status and response (admin only)
-app.put("/admin/complaints/:id", verifyToken, isAdmin, async (req, res) => {
-  try {
-    const { status, adminResponse } = req.body;
-
-    if (!['Pending', 'In Progress', 'Resolved'].includes(status)) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Invalid status value'
-      });
-    }
-
-    const complaint = await ComplaintModel.findById(req.params.id);
-    if (!complaint) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Complaint not found'
-      });
-    }
-
-    // Update complaint
-    complaint.status = status;
-    if (adminResponse) {
-      complaint.adminResponse = adminResponse;
-    }
-    await complaint.save();
-
-    // If status is being set to Resolved, create notification for the user
-    if (status === 'Resolved') {
-      const notification = new NotificationModel({
-        userId: complaint.user,
-        type: 'complaint_resolved',
-        message: `Your complaint regarding "${complaint.subject}" has been resolved`,
-        actionLink: `/complaints/${complaint._id}`
-      });
-      await notification.save();
-    }
-
-    res.json({
-      status: 'success',
-      message: 'Complaint updated successfully',
-      data: complaint
-    });
-
-  } catch (error) {
-    console.error('Error updating complaint:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to update complaint',
-      error: error.message
-    });
-  }
-});
-
-// Cancel an exchange (can be done by either borrower or owner when in certain states)
-app.put("/exchanges/:id/cancel", verifyToken, async (req, res) => {
+// Mark book as returned (by borrower)
+app.put("/exchanges/:id/mark-returned", verifyToken, async (req, res) => {
   try {
     const exchangeId = req.params.id;
+    console.log('Mark returned endpoint hit:', exchangeId);
 
-    // Find the exchange and populate book information for notifications
+    // Find the exchange and populate related data
     const exchange = await ExchangeModel.findById(exchangeId)
-      .populate('bookId', 'title status userId')
-      .populate('borrowerId', 'name email')
+      .populate('bookId', 'title status')
       .populate('ownerId', 'name email');
 
     if (!exchange) {
@@ -2647,58 +2480,44 @@ app.put("/exchanges/:id/cancel", verifyToken, async (req, res) => {
       });
     }
 
-    // Verify the current user is part of the exchange
-    if (
-      exchange.ownerId._id.toString() !== req.userId &&
-      exchange.borrowerId._id.toString() !== req.userId
-    ) {
+    // Verify the current user is the borrower
+    if (exchange.borrowerId.toString() !== req.userId) {
       return res.status(403).json({
         status: 'error',
-        message: 'You are not authorized to cancel this exchange'
+        message: 'Only the borrower can mark a book as returned'
       });
     }
 
-    // Check if exchange is in a state that can be cancelled
-    const cancellableStates = ['pending', 'accepted'];
-    if (!cancellableStates.includes(exchange.status)) {
+    // Verify the exchange is in the borrowed state
+    if (exchange.status !== 'borrowed') {
       return res.status(400).json({
         status: 'error',
-        message: `Exchange cannot be cancelled in "${exchange.status}" state`
+        message: 'Exchange must be in "borrowed" state to mark as returned'
       });
     }
 
-    // Get the user who is cancelling
-    const isOwner = exchange.ownerId._id.toString() === req.userId;
-    const canceller = isOwner ? exchange.ownerId : exchange.borrowerId;
-    const recipient = isOwner ? exchange.borrowerId : exchange.ownerId;
-
-    // Update exchange status
-    exchange.status = 'cancelled';
+    // Update exchange status and set return request date
+    exchange.status = 'returnRequested';
+    exchange.returnRequestDate = new Date(); // Record when the return was requested
     await exchange.save();
 
-    // Update book status to available
-    const book = await BookModel.findById(exchange.bookId._id);
-    if (book) {
-      book.status = 'available';
-      await book.save();
-    }
-
-    // Create notification for the other party
+    // Create notification for owner
     const notification = new NotificationModel({
-      userId: recipient._id,
-      type: 'exchange_cancelled',
+      userId: exchange.ownerId._id,
+      type: 'book_return',
       bookId: exchange.bookId._id,
-      message: `The exchange for "${exchange.bookId.title}" has been cancelled by ${canceller.name}.`,
+      message: `The borrower has marked "${exchange.bookId.title}" as returned. Please confirm when you receive it.`,
       actionLink: `/exchanges/${exchange._id}`
     });
 
     await notification.save();
 
-    // Send email to the other party
+    // Send email to owner
     const emailContent = `
-      <h2>Book Exchange Cancelled</h2>
-      <p>Hello ${recipient.name},</p>
-      <p>The exchange for "${exchange.bookId.title}" has been cancelled by ${canceller.name}.</p>
+      <h2>Book Return Initiated</h2>
+      <p>Hello ${exchange.ownerId.name},</p>
+      <p>The borrower has marked "${exchange.bookId.title}" as returned.</p>
+      <p>Once you receive the book, please confirm the return in the system.</p>
       <p>You can view the exchange details here: <a href="http://localhost:5173/exchanges/${exchange._id}">Exchange Details</a></p>
       <p>Thank you for using BookExchange!</p>
       <br>
@@ -2708,22 +2527,136 @@ app.put("/exchanges/:id/cancel", verifyToken, async (req, res) => {
 
     await transporter.sendMail({
       from: '"BookExchange" <bookexchange71@gmail.com>',
-      to: recipient.email,
-      subject: `Exchange Cancelled - ${exchange.bookId.title}`,
+      to: exchange.ownerId.email,
+      subject: `Book Return Initiated - ${exchange.bookId.title}`,
       html: emailContent
     });
 
     res.json({
       status: 'success',
-      message: 'Exchange cancelled successfully',
+      message: 'Book marked as returned successfully',
       data: exchange
     });
   } catch (error) {
-    console.error('Error cancelling exchange:', error);
+    console.error('Error marking book as returned:', error);
     res.status(500).json({
       status: 'error',
-      message: 'Failed to cancel exchange',
+      message: 'Failed to mark book as returned',
       error: error.message
+    });
+  }
+});
+
+// Add a review to an exchange
+app.post("/exchanges/:id/review", verifyToken, async (req, res) => {
+  console.log(`Review submission for exchange ${req.params.id}:`, req.body);
+  try {
+    const { rating, comment } = req.body;
+    const exchangeId = req.params.id;
+    
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        status: "error",
+        message: "Rating is required and must be between 1 and 5"
+      });
+    }
+
+    const exchange = await ExchangeModel.findById(exchangeId);
+    
+    if (!exchange) {
+      return res.status(404).json({
+        status: "error",
+        message: "Exchange not found"
+      });
+    }
+
+    // Determine if user is owner or borrower
+    const isOwner = exchange.ownerId.toString() === req.userId;
+    const isBorrower = exchange.borrowerId.toString() === req.userId;
+
+    if (!isOwner && !isBorrower) {
+      return res.status(403).json({
+        status: "error",
+        message: "You are not authorized to review this exchange"
+      });
+    }
+
+    // Check if the exchange status allows for reviews
+    if (!['returned', 'completed'].includes(exchange.status)) {
+      return res.status(400).json({
+        status: "error",
+        message: "You can only review completed exchanges"
+      });
+    }
+
+    // Check if the user has already submitted a review
+    if ((isOwner && exchange.ownerReview && exchange.ownerReview.rating) || 
+        (isBorrower && exchange.borrowerReview && exchange.borrowerReview.rating)) {
+      return res.status(400).json({
+        status: "error",
+        message: "You have already reviewed this exchange"
+      });
+    }
+
+    // Add the review based on who is submitting it
+    if (isOwner) {
+      exchange.ownerReview = {
+        rating,
+        comment,
+        createdAt: new Date()
+      };
+      
+      // Create notification for borrower
+      await NotificationModel.create({
+        userId: exchange.borrowerId,
+        type: 'review',
+        message: `${exchange.ownerId.name || 'The owner'} has left a ${rating}-star review for your exchange`,
+        relatedId: exchangeId,
+        isRead: false,
+        createdAt: new Date()
+      });
+    } else {
+      exchange.borrowerReview = {
+        rating,
+        comment,
+        createdAt: new Date()
+      };
+      
+      // Create notification for owner
+      await NotificationModel.create({
+        userId: exchange.ownerId,
+        type: 'review',
+        message: `${exchange.borrowerId.name || 'The borrower'} has left a ${rating}-star review for your exchange`,
+        relatedId: exchangeId,
+        isRead: false,
+        createdAt: new Date()
+      });
+    }
+
+    // Update exchange status to completed if both parties have reviewed
+    if (exchange.ownerReview && exchange.ownerReview.rating && 
+        exchange.borrowerReview && exchange.borrowerReview.rating && 
+        exchange.status !== 'completed') {
+      exchange.status = 'completed';
+    }
+
+    await exchange.save();
+
+    return res.status(200).json({
+      status: "success",
+      message: "Review submitted successfully",
+      data: {
+        exchangeId,
+        reviewType: isOwner ? 'ownerReview' : 'borrowerReview',
+        rating,
+        comment
+      }
+    });
+  } catch (error) {
+    console.error("Add exchange review error:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to add review"
     });
   }
 });

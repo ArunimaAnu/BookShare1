@@ -188,12 +188,12 @@ const AdminBrowseBooks = () => {
                       >
                         View
                       </button>
-                      <button
+                      {/* <button
                         className="edit-button"
                         onClick={() => navigate(`/edit-book/${book._id}`)}
                       >
                         Edit
-                      </button>
+                      </button> */}
                       <button
                         className="delete-button"
                         onClick={() => handleDeleteBook(book._id)}
