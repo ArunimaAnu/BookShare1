@@ -192,14 +192,14 @@ const AddWishlist = () => {
             </div>
             
             <div className="form-actions">
-              <button
+              {/* <button
                 type="button"
                 onClick={searchBooks}
                 className="search-button"
                 disabled={loading || searching}
               >
                 <FaSearch /> {searching ? 'Searching...' : 'Check Availability'}
-              </button>
+              </button> */}
               
               <button
                 type="submit"
