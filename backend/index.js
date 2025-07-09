@@ -1858,20 +1858,36 @@ app.put("/exchanges/:id/handover", verifyToken, async (req, res) => {
       exchange.cautionDeposit.paid = true;
     }
 
-    // Update exchange status and dates
-    exchange.status = 'borrowed';
-    exchange.borrowDate = new Date();
+    // Get the book to check if it needs return
+    const book = await BookModel.findById(exchange.bookId);
 
-    // Set expected return date (e.g., 14 days later)
-    const returnDate = new Date();
-    returnDate.setDate(returnDate.getDate() + 14);
-    exchange.expectedReturnDate = returnDate;
+    // Update exchange status and dates
+    // For gift books (needsReturn = false), set status to 'completed'
+    // For books that need return, set status to 'borrowed'
+    if (book.needsReturn) {
+      exchange.status = 'borrowed';
+      exchange.borrowDate = new Date();
+      
+      // Set expected return date (e.g., 14 days later)
+      const returnDate = new Date();
+      returnDate.setDate(returnDate.getDate() + 14);
+      exchange.expectedReturnDate = returnDate;
+    } else {
+      // For gift books, complete the exchange immediately
+      exchange.status = 'completed';
+      exchange.borrowDate = new Date();
+      exchange.actualReturnDate = new Date(); // Mark as returned immediately for gifts
+    }
 
     await exchange.save();
 
     // Update book status
-    const book = await BookModel.findById(exchange.bookId);
-    book.status = 'borrowed';
+    if (book.needsReturn) {
+      book.status = 'borrowed';
+    } else {
+      // For gift books, make the book available again (since it's a gift)
+      book.status = 'available';
+    }
     await book.save();
 
     // Remove book from borrower's wishlist if it exists
@@ -1886,11 +1902,19 @@ app.put("/exchanges/:id/handover", verifyToken, async (req, res) => {
       ? exchange.borrowerId
       : exchange.ownerId;
 
+    let notificationMessage;
+    if (book.needsReturn) {
+      const returnDate = exchange.expectedReturnDate;
+      notificationMessage = `The book handover has been confirmed. The book is due to be returned by ${returnDate.toLocaleDateString()}.`;
+    } else {
+      notificationMessage = `The book handover has been confirmed. Since this is a gift, the exchange is now complete! You can leave a rating for this exchange.`;
+    }
+
     const notification = new NotificationModel({
       userId: recipientId,
-      type: 'book_return',
+      type: book.needsReturn ? 'book_return' : 'exchange_completed',
       bookId: exchange.bookId,
-      message: `The book handover has been confirmed. ${book.needsReturn ? `The book is due to be returned by ${returnDate.toLocaleDateString()}.` : ''}`,
+      message: notificationMessage,
       actionLink: `/exchanges/${exchange._id}`
     });
 

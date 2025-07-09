@@ -253,12 +253,12 @@
   transform: translateY(-2px);
 }
 
-.book-cover {
+.bookz-cover {
   position: relative;
   padding-top: 100%; /* Make it a perfect square (1:1 ratio) */
 }
 
-.book-cover img {
+.bookz-cover img {
   position: absolute;
   top: 0;
   left:0;
@@ -490,7 +490,7 @@
     gap: 5px;
   }
 
-  .book-cover {
+  .bookz-cover {
     padding-top: 100%;
   }
 
