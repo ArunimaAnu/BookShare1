@@ -572,11 +572,12 @@ const ExchangeDetails = () => {
 
   // New function to check if borrower can mark book as returned
   const canMarkReturned = () => {
-    console.log('Checking canMarkReturned:', exchange?.status, isBorrower());
-    // Only show if status is borrowed AND the user is the borrower
+    console.log('Checking canMarkReturned:', exchange?.status, isBorrower(), exchange?.bookId?.needsReturn);
+    // Only show if status is borrowed AND the user is the borrower AND the book needs to be returned
     return exchange &&
       exchange.status === 'borrowed' &&
-      isBorrower();
+      isBorrower() &&
+      exchange.bookId.needsReturn; // Only show for books that need to be returned
   };
 
   // Updated function to check if owner can confirm return
@@ -728,7 +729,7 @@ const ExchangeDetails = () => {
         icon: exchange.status === 'rejected' ? <FaTimesCircle /> : <FaCheckCircle />
       },
       {
-        label: 'Book Borrowed',
+        label: exchange.bookId.needsReturn ? 'Book Borrowed' : 'Book Received (Gift)',
         status: ['pending', 'accepted'].includes(exchange.status) ? 'upcoming' : ['rejected', 'cancelled'].includes(exchange.status) ? 'cancelled' : 'completed',
         date: exchange.borrowDate ? formatDate(exchange.borrowDate) : '',
         icon: <FaBook />
@@ -763,7 +764,7 @@ const ExchangeDetails = () => {
     }
 
     steps.push({
-      label: 'Exchange Completed',
+      label: exchange.bookId.needsReturn ? 'Exchange Completed' : 'Gift Exchange Completed',
       status: exchange.status === 'completed' ? 'completed' : ['rejected', 'cancelled'].includes(exchange.status) ? 'cancelled' : 'upcoming',
       date: exchange.status === 'completed' ? formatDate(exchange.updatedAt) : '',
       icon: <FaClipboardCheck />
@@ -1233,6 +1234,17 @@ const ExchangeDetails = () => {
           <div className="alert-content">
             <h4>Caution Deposit Required</h4>
             <p>Please pay the caution deposit of ₹{exchange.cautionDeposit.amount.toFixed(2)} to proceed with the book exchange.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Gift Completion Notice - Completed Gifts */}
+      {!exchange.bookId.needsReturn && exchange.status === 'completed' && (
+        <div className="gift-completion-notice">
+          <FaCheckCircle className="gift-icon" />
+          <div className="gift-message">
+            <h4>Gift Exchange Complete!</h4>
+            <p>This book was given as a gift - no return required. You can leave a rating for this exchange.</p>
           </div>
         </div>
       )}

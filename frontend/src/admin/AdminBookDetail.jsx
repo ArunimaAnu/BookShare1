@@ -205,9 +205,9 @@ const AdminBookDetail = () => {
                 <FaArrowLeft /> Back to Books
               </button>
               <div className="action-buttons">
-                <button onClick={() => navigate(`/edit-book/${id}`)} className="admindash-action-button">
+                {/* <button onClick={() => navigate(`/edit-book/${id}`)} className="admindash-action-button">
                   <FaEdit /> Edit Book
-                </button>
+                </button> */}
                 <button onClick={handleDeleteBook} className="admindash-action-button" style={{ backgroundColor: '#ef4444' }}>
                   <FaTrash /> Delete Book
                 </button>
@@ -217,13 +217,13 @@ const AdminBookDetail = () => {
             {error && <div className="admindash-error-message">{error}</div>}
 
             <div className="admindash-book-detail">
-              <div className="book-cover">
+              <div className="bookss-cover">
                 <img 
-                  src={book.image || '/default-book-cover.jpg'} 
+                  src={book.image || '/default-bookss-cover.jpg'} 
                   alt={book.title}
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = '/default-book-cover.jpg';
+                    e.target.src = '/default-bookss-cover.jpg';
                   }}
                 />
               </div>

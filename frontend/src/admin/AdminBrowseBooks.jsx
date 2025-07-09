@@ -165,13 +165,13 @@ const AdminBrowseBooks = () => {
           ) : (
             <div className="books-grid">
               {filteredBooks.map(book => (                <div key={book._id} className="book-card">
-                  <div className="book-cover">
+                  <div className="bookz-cover">
                     <img
-                      src={book.image || '/default-book-cover.jpg'}
+                      src={book.image || '/default-bookz-cover.jpg'}
                       alt={book.title}
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = '/default-book-cover.jpg';
+                        e.target.src = '/default-bookz-cover.jpg';
                       }}
                     />
                   </div>
