@@ -391,7 +391,7 @@ const Notifications = () => {
         setExchangeDetails(prev => ({
           ...prev,
           cautionDeposit: {
-            amount: bookDetails.needsReturn ? 500 : 0,
+            amount: bookDetails.needsReturn ? 0 : 0,
             paid: false
           }
         }));

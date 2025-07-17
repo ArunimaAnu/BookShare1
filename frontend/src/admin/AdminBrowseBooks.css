@@ -262,7 +262,7 @@
   position: absolute;
   top: 0;
   left:0;
-  width: 55%;
+  width: 100%;
   height: 100%;
   object-fit: contain; /* Ensure the whole image fits without stretching */
   background-color: #1a1f2c; /* Dark background for image */
