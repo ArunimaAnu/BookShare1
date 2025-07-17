@@ -197,7 +197,7 @@ const UserManagement = () => {
                             </>
                           ) : (
                             <>
-                              <button
+                              {/* <button
                                 onClick={() => {
                                   setRoleUpdateMode(true);
                                   setSelectedUser(user._id);
@@ -206,7 +206,8 @@ const UserManagement = () => {
                                 className="user-action-button change-role"
                               >
                                 Change Role
-                              </button>                              <button
+                              </button>                               */}
+                              <button
                                 onClick={() => handleDeleteUser(user._id)}
                                 className="user-action-button delete"
                               >

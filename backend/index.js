@@ -1707,7 +1707,7 @@ app.post("/exchanges/request", verifyToken, async (req, res) => {
       exchangeMethod,
       exchangeLocation: exchangeLocation || '',
       cautionDeposit: {
-        amount: book.needsReturn ? 500 : 0, // Example deposit amount
+        amount: book.needsReturn ? 250 : 0, // Example deposit amount
         paid: false,
         refunded: false
       }

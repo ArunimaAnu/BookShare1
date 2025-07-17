@@ -351,7 +351,7 @@ const ExchangePage = () => {
                       </div>
                     )}
                     
-                    {exchange.cautionDeposit && exchange.cautionDeposit.amount > 0 && (
+                    {exchange.cautionDeposit && exchange.cautionDeposit.amount > 250 && (
                       <div className="caution-deposit">
                         <FaMoneyBillWave className="deposit-icon" />
                         <span className="deposit-label">Deposit:</span>

@@ -379,7 +379,7 @@ const fetchMyBooks = async () => {
                 <FaExchangeAlt /> My Exchanges
               </li>
               <li className={activeTab === 'notifications' ? 'active' : ''} onClick={() => navigate('/notifications')}>
-                <FaBell /> Notifications
+                <FaBell /> Notifications-
                 {unreadNotifications > 0 && (
                   <span className="sidebar-notification-badge">{unreadNotifications}</span>
                 )}
